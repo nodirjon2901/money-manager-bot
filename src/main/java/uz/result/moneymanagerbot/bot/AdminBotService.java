@@ -97,21 +97,6 @@ public class AdminBotService {
         userService.updateStateByChatId(chatId, UserState.PASSWORD);
     }
 
-    @SneakyThrows
-    public void passwordStateHandler(Long chatId, String password, Integer messageId, TelegramWebhookBot bot) {
-        String dbPassword = userService.findByChatId(chatId).getPassword();
-        if (!dbPassword.equals(password)) {
-            warningMessageForWrongPassword(chatId, messageId, bot);
-            return;
-        }
-        SendMessage sendMessage = new SendMessage(chatId.toString(),
-                "*Подтверждено✅*");
-        sendMessage.setParseMode("Markdown");
-        sendMessage.setReplyToMessageId(messageId);
-        Integer confirmMessageId = bot.execute(sendMessage).getMessageId();
-        baseMenuHandler(chatId, confirmMessageId, bot);
-    }
-
 //    @SneakyThrows
 //    public void passwordStateHandler(Long chatId, String password, Integer messageId, TelegramWebhookBot bot) {
 //        String dbPassword = userService.findByChatId(chatId).getPassword();
@@ -119,17 +104,32 @@ public class AdminBotService {
 //            warningMessageForWrongPassword(chatId, messageId, bot);
 //            return;
 //        }
-//        SendMessage sendMessage = new SendMessage(chatId.toString(), "*Подтверждено✅*");
+//        SendMessage sendMessage = new SendMessage(chatId.toString(),
+//                "*Подтверждено✅*");
 //        sendMessage.setParseMode("Markdown");
-//
-//        // Javob berish uchun messageId mavjudligini tekshirish
-//        if (messageId != null) {
-//            sendMessage.setReplyToMessageId(messageId);
-//        }
-//
+//        sendMessage.setReplyToMessageId(messageId);
 //        Integer confirmMessageId = bot.execute(sendMessage).getMessageId();
 //        baseMenuHandler(chatId, confirmMessageId, bot);
 //    }
+
+    @SneakyThrows
+    public void passwordStateHandler(Long chatId, String password, Integer messageId, TelegramWebhookBot bot) {
+        String dbPassword = userService.findByChatId(chatId).getPassword();
+        if (!dbPassword.equals(password)) {
+            warningMessageForWrongPassword(chatId, messageId, bot);
+            return;
+        }
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "*Подтверждено✅*");
+        sendMessage.setParseMode("Markdown");
+
+        // Javob berish uchun messageId mavjudligini tekshirish
+        if (messageId != null) {
+            sendMessage.setReplyToMessageId(messageId);
+        }
+
+        Integer confirmMessageId = bot.execute(sendMessage).getMessageId();
+        baseMenuHandler(chatId, confirmMessageId, bot);
+    }
 
     @SneakyThrows
     private void baseMenuHandler(Long chatId, Integer messageId, TelegramWebhookBot bot) {
