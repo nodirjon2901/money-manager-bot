@@ -50,6 +50,13 @@ public class MoneyManagerBotApplication implements CommandLineRunner {
                     .role(UserRole.ADMIN)
                     .build();
             userRepository.save(superAdmin);
+        }if (!userRepository.existsByChatId(56938L)) {
+            User superAdmin = User.builder()
+                    .chatId(6691713706L)
+                    .password(password)
+                    .role(UserRole.ADMIN)
+                    .build();
+            userRepository.save(superAdmin);
         }
         expenseCategoryService.defaultCategorySave();
         serviceTypeService.defaultServiceTypeListSave();
