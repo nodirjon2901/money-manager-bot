@@ -50,7 +50,7 @@ public class MoneyManagerBotApplication implements CommandLineRunner {
                     .role(UserRole.ADMIN)
                     .build();
             userRepository.save(superAdmin);
-        }if (!userRepository.existsByChatId(56938L)) {
+        }if (!userRepository.existsByChatId(6691713706L)) {
             User superAdmin = User.builder()
                     .chatId(6691713706L)
                     .password(password)
