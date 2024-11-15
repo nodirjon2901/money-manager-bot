@@ -329,27 +329,27 @@ public class AdminBotService {
         Transaction transaction = transactionService.findById(Sessions.getTransactionId(chatId));
         String text = "";
         if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
-            text = "*Transaction*\n\n" +
-                    "*Tranzaksiya turi: *" + showTransactionType(transaction.getTransactionType()) + "\n" +
-                    "*Pul turi: *" + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
-                    "*Tranzaksiya summasi: *" + transaction.getSumma() + "\n" +
-                    "*Tranzaksiya sanasi: *" + transaction.getTransactionDate() + "\n" +
-                    "*Tranzaksiya daromad mijozi: *" + transaction.getClient().getFullName() + "\n" +
-                    "*Mijoz telefon raqami: *" + transaction.getClient().getPhoneNumber() + "\n" +
-                    "*Mijoz xizmat turi: *" + transaction.getClient().getServiceType().getName() + "\n" +
-                    "*Tranzaksiya daromad holati: *" + showTransactionStatus(transaction.getTransactionStatus()) + "\n" +
-                    "*Tranzaksiyaga qoldirilgan izoh: *" + transaction.getComment() + "\n" +
-                    "*Tranzaksiya file: *" + showTransactionFile(transaction.getFile()) + "\n";
+            text = "*Транзакция*\n\n" +
+                    "*Тип транзакции: *" + showTransactionType(transaction.getTransactionType()) + "\n" +
+                    "*Валюта: *" + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
+                    "*Сумма транзакции: *" + transaction.getSumma() + "\n" +
+                    "*Дата транзакции: *" + transaction.getTransactionDate() + "\n" +
+                    "*Клиент дохода от транзакции: *" + transaction.getClient().getFullName() + "\n" +
+                    "*Номер телефона клиента: *" + transaction.getClient().getPhoneNumber() + "\n" +
+                    "*Тип услуги клиента: *" + transaction.getClient().getServiceType().getName() + "\n" +
+                    "*Статус дохода от транзакции: *" + showTransactionStatus(transaction.getTransactionStatus()) + "\n" +
+                    "*Комментарий к транзакции: *" + transaction.getComment() + "\n" +
+                    "*Файл транзакции: *" + showTransactionFile(transaction.getFile()) + "\n";
         }
         if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
-            text = "*Transaction*\n\n" +
-                    "*Tranzaksiya turi: *" + showTransactionType(transaction.getTransactionType()) + "\n" +
-                    "*Pul turi: *" + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
-                    "*Tranzaksiya summasi: *" + transaction.getSumma() + "\n" +
-                    "*Tranzaksiya sanasi: *" + transaction.getTransactionDate() + "\n" +
-                    "*Tranzaksiya xarajat kategoriyasi: *" + transaction.getExpenseCategory().getName() + "\n" +
-                    "*Tranzaksiyaga qoldirilgan izoh: *" + transaction.getComment() + "\n" +
-                    "*Tranzaksiya file: *" + showTransactionFile(transaction.getFile()) + "\n";
+            text = "*Транзакция*\n\n" +
+                    "*Тип транзакции: *" + showTransactionType(transaction.getTransactionType()) + "\n" +
+                    "*Валюта: *" + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
+                    "*Сумма транзакции: *" + transaction.getSumma() + "\n" +
+                    "*Дата транзакции: *" + transaction.getTransactionDate() + "\n" +
+                    "*Категория расхода по транзакции: *" + transaction.getExpenseCategory().getName() + "\n" +
+                    "*Комментарий к транзакции: *" + transaction.getComment() + "\n" +
+                    "*Файл транзакции: *" + showTransactionFile(transaction.getFile()) + "\n";
         }
         SendMessage sendMessage = new SendMessage(chatId.toString(), text);
         sendMessage.setParseMode("Markdown");
