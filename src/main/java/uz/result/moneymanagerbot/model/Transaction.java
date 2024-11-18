@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Builder
@@ -25,7 +27,7 @@ public class Transaction {
 
     Double summa;
 
-    String transactionDate;
+    LocalDate transactionDate;
 
     @ManyToOne
     ExpenseCategory expenseCategory;

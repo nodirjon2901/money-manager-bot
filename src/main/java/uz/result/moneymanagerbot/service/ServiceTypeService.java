@@ -15,6 +15,10 @@ public class ServiceTypeService {
 
     private final ServiceTypeRepository serviceTypeRepository;
 
+    public ServiceType save(ServiceType type) {
+        return serviceTypeRepository.save(type);
+    }
+
     public void defaultServiceTypeListSave() {
         List<ServiceType> serviceTypeList = new ArrayList<>();
         if (!serviceTypeRepository.existsByName("Разработка сайта"))
@@ -34,6 +38,7 @@ public class ServiceTypeService {
 
         if (!serviceTypeList.isEmpty())
             serviceTypeRepository.saveAll(serviceTypeList);
+        System.out.println("Default client uchun xizmatlar qo'shildi");
     }
 
     public ServiceType findByName(String name) {
@@ -41,4 +46,23 @@ public class ServiceTypeService {
                 .orElseThrow(() -> new NotFoundException("Service is not found with this name: " + name));
     }
 
+    public List<ServiceType> findAll() {
+        return serviceTypeRepository.findAll();
+    }
+
+    public ServiceType findById(Integer id) {
+        return serviceTypeRepository.findById(id).orElseThrow(() -> new NotFoundException("ServiceType is not found with id: " + id));
+    }
+
+    public void deleteById(Integer id) {
+        serviceTypeRepository.deleteById(id);
+    }
+
+    public boolean existsById(Integer id) {
+        return serviceTypeRepository.existsById(id);
+    }
+
+    public void updateServiceName(Integer serviceId, String serviceName) {
+        serviceTypeRepository.updateServiceTypeNameById(serviceName,serviceId);
+    }
 }

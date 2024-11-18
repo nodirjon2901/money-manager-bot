@@ -10,6 +10,7 @@ import uz.result.moneymanagerbot.model.Transaction;
 import uz.result.moneymanagerbot.model.TransactionType;
 import uz.result.moneymanagerbot.model.UserState;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Repository
@@ -28,7 +29,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Modifying
     @Transactional
     @Query(value = "update transactions set transaction_date=:date where id=:id", nativeQuery = true)
-    void updateTransactionDateById(@Param("date") String date, @Param("id") Long id);
+    void updateTransactionDateById(@Param("date") LocalDate date, @Param("id") Long id);
 
     @Modifying
     @Transactional

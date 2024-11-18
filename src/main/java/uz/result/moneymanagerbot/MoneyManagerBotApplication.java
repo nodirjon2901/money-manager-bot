@@ -43,6 +43,7 @@ public class MoneyManagerBotApplication implements CommandLineRunner {
                     .role(UserRole.ADMIN)
                     .build();
             userRepository.save(superAdmin);
+            System.out.println("Nodir qo'shildi");
         }if (!userRepository.existsByChatId(56938L)) {
             User superAdmin = User.builder()
                     .chatId(56938L)
@@ -50,6 +51,7 @@ public class MoneyManagerBotApplication implements CommandLineRunner {
                     .role(UserRole.ADMIN)
                     .build();
             userRepository.save(superAdmin);
+            System.out.println("Sardor aka qo'shildi");
         }if (!userRepository.existsByChatId(6691713706L)) {
             User superAdmin = User.builder()
                     .chatId(6691713706L)
@@ -57,6 +59,7 @@ public class MoneyManagerBotApplication implements CommandLineRunner {
                     .role(UserRole.ADMIN)
                     .build();
             userRepository.save(superAdmin);
+            System.out.println("Rashid aka qo'shildi");
         }if (!userRepository.existsByChatId(1762041853L)) {
             User superAdmin = User.builder()
                     .chatId(1762041853L)
@@ -64,6 +67,7 @@ public class MoneyManagerBotApplication implements CommandLineRunner {
                     .role(UserRole.ADMIN)
                     .build();
             userRepository.save(superAdmin);
+            System.out.println("Davlat aka qo'shildi");
         }
         expenseCategoryService.defaultCategorySave();
         serviceTypeService.defaultServiceTypeListSave();

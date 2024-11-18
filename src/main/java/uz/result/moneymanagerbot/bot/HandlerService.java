@@ -35,6 +35,7 @@ public class HandlerService {
             if (text.equals("/start")) {
                 if (!currentState.equals(UserState.DEFAULT)) {
                     userService.updateStateByChatId(chatId, UserState.START);
+                    Sessions.clearSessions();
                     currentState = userService.findStateByChatId(chatId);
                 }
             }
@@ -44,19 +45,31 @@ public class HandlerService {
                 case PASSWORD -> adminBotService.passwordStateHandler(chatId, text, message.getMessageId(), bot);
                 case TRANSACTION_SUMMA ->
                         adminBotService.transactionSummaStateHandler(chatId, text, message.getMessageId(), bot);
-                case OTHER_DATE -> adminBotService.otherDateStateHandler(chatId, text, bot);
+                case OTHER_DATE -> adminBotService.otherDateStateHandler(chatId, text, message.getMessageId(), bot);
                 case COMMENT -> adminBotService.commentStateHandler(chatId, text, bot);
                 case TRANSACTION_DATE -> adminBotService.transactionDateMessageHandler(chatId, bot);
+                case REQUEST_CLIENT_FULL_NAME -> adminBotService.requestClientFullNameStateHandler(chatId, text, bot);
+                case REQUEST_CLIENT_PHONE_NUMBER ->
+                        adminBotService.requestClientPhoneNumberStateHandler(chatId, text, bot);
+                case EDIT_CLIENT_PHONE -> adminBotService.editClientPhoneStateHandler(chatId, text, bot);
+                case REQUEST_SERVICE_NAME -> adminBotService.requestServiceNameStateHandler(chatId, text, bot);
+                case REQUEST_CATEGORY_NAME -> adminBotService.requestCategoryNameStateHandler(chatId, text, bot);
                 case BASE_MENU -> {
                     switch (text) {
                         case "➕Добавить транзакцию" -> adminBotService.addTransactionHandler(chatId, bot);
+                        case "\uD83D\uDC65Управление клиентами" -> adminBotService.clientControlHandler(chatId, bot);
+                        case "\uD83C\uDFB0Управление видами услуг" ->
+                                adminBotService.serviceControlHandler(chatId, bot);
+                        case "\uD83D\uDCC8Управление категориями услуг" ->
+                                adminBotService.categoryControlHandler(chatId, bot);
                     }
                 }
                 case ADD_TRANSACTION -> {
                     switch (text) {
                         case "Доход", "Расход" -> adminBotService.incomeMessageHandler(chatId, text, bot);
                         case "Перемещение" -> {
-
+//                            adminBotService.transferMessageHandler(chatId, text, bot);
+                            adminBotService.incomeMessageHandler(chatId, text, bot);
                         }
                         case "Назад\uD83D\uDD19" -> adminBotService.baseMenuForBackHandler(chatId, bot);
                     }
@@ -115,14 +128,14 @@ public class HandlerService {
             }
             case EXPENSE_TYPE -> {
                 if (data.equals("other")) {
-                    adminBotService.otherExpenseTypeHandler(chatId, bot);
+                    adminBotService.addCategoryHandler(chatId, currentState, bot);
                 } else {
                     adminBotService.expenseTypeStateHandler(chatId, data, bot);
                 }
             }
             case INCOME_TYPE -> {
                 if (data.equals("other")) {
-                    adminBotService.otherIncomeTypeHandler(chatId, bot);
+                    adminBotService.addClientHandler(chatId, currentState, bot);
                 } else {
                     adminBotService.incomeTypeStateHandler(chatId, data, bot);
                 }
@@ -145,9 +158,97 @@ public class HandlerService {
                     case "cancellation" -> adminBotService.transactionCancellationHandler(chatId, bot);
                 }
             }
-            case INCOME_TYPE_STATUS -> adminBotService.incomeTypeStatusStateHandler(chatId,data,bot);
+            case INCOME_TYPE_STATUS -> adminBotService.incomeTypeStatusStateHandler(chatId, data, bot);
+            case CLIENT_LIST -> {
+                if (data.equals("other")) {
+                    adminBotService.addClientHandler(chatId, currentState, bot);
+                } else if (data.equals("back")) {
+                    adminBotService.baseMenuForBackHandler(chatId, bot);
+                } else {
+                    adminBotService.editClientHandler(chatId, data, bot);
+                }
+            }
+            case SERVICE_LIST -> {
+                if (data.equals("other")) {
+                    adminBotService.addServiceHandler(chatId, currentState, bot);
+                } else if (data.equals("back")) {
+                    adminBotService.baseMenuForBackHandler(chatId, bot);
+                } else {
+                    adminBotService.editServiceHandler(chatId, data, bot);
+                }
+            }
+            case CATEGORY_LIST -> {
+                if (data.equals("other")) {
+                    adminBotService.addCategoryHandler(chatId, currentState, bot);
+                } else if (data.equals("back")) {
+                    adminBotService.baseMenuForBackHandler(chatId, bot);
+                } else {
+                    adminBotService.editCategoryHandler(chatId, data, bot);
+                }
+            }
+            case EDIT_CLIENT -> {
+                switch (data) {
+                    case "edit" ->
+                            adminBotService.showClientDetailsHandler(chatId, Sessions.getClientId(chatId).toString(), bot);
+                    case "delete" -> adminBotService.deleteClientHandler(chatId, callbackQuery, bot);
+                    case "back" -> adminBotService.clientControlHandler(chatId, bot);
+                }
+            }
+            case EDIT_SERVICE_FORM -> {
+                switch (data) {
+                    case "edit" ->
+                            adminBotService.showServiceDetailsHandler(chatId, Sessions.getServiceId(chatId).toString(), bot);
+                    case "delete" -> adminBotService.deleteServiceHandler(chatId, callbackQuery, bot);
+                    case "back" -> adminBotService.serviceListHandler(chatId, bot);
+                }
+            }
+            case EDIT_CATEGORY_FORM -> {
+                switch (data) {
+                    case "edit" ->
+                            adminBotService.showCategoryDetailsHandler(chatId, Sessions.getCategoryId(chatId).toString(), bot);
+                    case "delete" -> adminBotService.deleteCategoryHandler(chatId, callbackQuery, bot);
+                    case "back" -> adminBotService.categoryListHandler(chatId, bot);
+                }
+            }
+            case EDIT_CLIENT_FORM -> {
+                switch (data) {
+                    case "full_name" -> adminBotService.addClientHandler(chatId, currentState, bot);
+                    case "phone" -> adminBotService.editClientPhoneNumberHandler(chatId, bot);
+                    case "service" -> adminBotService.editClientServiceHandler(chatId, bot);
+                    case "back" ->
+                            adminBotService.editClientHandler(chatId, Sessions.getClientId(chatId).toString(), bot);
+                }
+            }
+            case EDIT_SERVICE -> {
+                switch (data) {
+                    case "name" -> adminBotService.addServiceHandler(chatId, currentState, bot);
+                    case "back" ->
+                            adminBotService.editServiceHandler(chatId, Sessions.getServiceId(chatId).toString(), bot);
+                }
+            }
+            case EDIT_CATEGORY -> {
+                switch (data) {
+                    case "name" -> adminBotService.addCategoryHandler(chatId, currentState, bot);
+                    case "back" ->
+                            adminBotService.editCategoryHandler(chatId, Sessions.getCategoryId(chatId).toString(), bot);
+                }
+            }
+            case EDIT_CLIENT_SERVICE -> {
+                if (data.equals("other")) {
+                    adminBotService.addServiceHandler(chatId, currentState, bot);
+                } else {
+                    adminBotService.editClientServiceStateHandler(chatId, data, bot);
+                }
+            }
+            case REQUEST_CLIENT_SERVICE_CATEGORY -> {
+                if (data.equals("other")) {
+                    adminBotService.addServiceHandler(chatId, currentState, bot);
+                } else {
+                    adminBotService.setCategoryInClientHandler(chatId, data, bot);
+                }
             }
         }
     }
+}
 
 

@@ -7,6 +7,7 @@ import uz.result.moneymanagerbot.model.*;
 import uz.result.moneymanagerbot.repository.TransactionRepository;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class TransactionService {
         transactionRepository.updateTransactionSummaById(summa, id);
     }
 
-    public void updateTransactionDateById(Long id, String date) {
+    public void updateTransactionDateById(Long id, LocalDate date) {
         transactionRepository.updateTransactionDateById(date, id);
     }
 

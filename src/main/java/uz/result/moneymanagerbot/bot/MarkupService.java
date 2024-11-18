@@ -8,9 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import uz.result.moneymanagerbot.model.Client;
-import uz.result.moneymanagerbot.model.ExpenseCategory;
-import uz.result.moneymanagerbot.model.MoneyType;
+import uz.result.moneymanagerbot.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +35,11 @@ public class MarkupService {
         row = new KeyboardRow();
         KeyboardButton b3 = new KeyboardButton("\uD83D\uDCC8Управление категориями услуг");
         row.add(b3);
+        rows.add(row);
+
+        row = new KeyboardRow();
+        KeyboardButton b31 = new KeyboardButton("\uD83C\uDFB0Управление видами услуг");
+        row.add(b31);
         rows.add(row);
 
         row = new KeyboardRow();
@@ -170,7 +173,7 @@ public class MarkupService {
         return inlineKeyboard;
     }
 
-    public InlineKeyboardMarkup expenseTypeInlineMarkup(List<ExpenseCategory> categoryList) {
+    public InlineKeyboardMarkup categoryListInlineMarkup(List<ExpenseCategory> categoryList, UserState state) {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> buttonRow = new ArrayList<>();
@@ -187,8 +190,14 @@ public class MarkupService {
         button.setText("Другое ➕");
         button.setCallbackData("other");
         buttonRow.add(button);
-        rowsInline.add(buttonRow);
 
+        if (!state.equals(UserState.TRANSACTION_DATE)) {
+            button = new InlineKeyboardButton();
+            button.setText("Назад \uD83D\uDD19");
+            button.setCallbackData("back");
+            buttonRow.add(button);
+        }
+        rowsInline.add(buttonRow);
         inlineKeyboard.setKeyboard(rowsInline);
         return inlineKeyboard;
     }
@@ -233,7 +242,7 @@ public class MarkupService {
         return inlineKeyboard;
     }
 
-    public InlineKeyboardMarkup incomeTypeInlineMarkup(List<Client> clientList) {
+    public InlineKeyboardMarkup clientListInlineMarkup(List<Client> clientList) {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> buttonRow = new ArrayList<>();
@@ -249,6 +258,11 @@ public class MarkupService {
         buttonRow = new ArrayList<>();
         button.setText("Другое ➕");
         button.setCallbackData("other");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
         buttonRow.add(button);
         rowsInline.add(buttonRow);
 
@@ -272,7 +286,7 @@ public class MarkupService {
         buttonRow.add(button);
         rowsInline.add(buttonRow);
 
-        buttonRow=new ArrayList<>();
+        buttonRow = new ArrayList<>();
         button = new InlineKeyboardButton();
         button.setText("Финзайм");
         button.setCallbackData("FINANCIAL_LOAN");
@@ -281,6 +295,137 @@ public class MarkupService {
         button = new InlineKeyboardButton();
         button.setText("Постоплата");
         button.setCallbackData("POST_PAYMENT");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup clientServiceListInlineMarkup(List<ServiceType> list) {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+        for (ServiceType type : list) {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            buttonRow = new ArrayList<>();
+            button.setText(type.getName());
+            button.setCallbackData(type.getId().toString());
+            buttonRow.add(button);
+            rowsInline.add(buttonRow);
+        }
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Другое ➕");
+        button.setCallbackData("other");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup clientSettingInlineMarkupService() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText("ФИО");
+        button.setCallbackData("full_name");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Номер телефона");
+        button.setCallbackData("phone");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        buttonRow = new ArrayList<>();
+        button = new InlineKeyboardButton();
+        button.setText("Услугу ");
+        button.setCallbackData("service");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+
+    }
+
+    public InlineKeyboardMarkup selectedCategoryInlineMarkup() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText("Редактировать ✍️");
+        button.setCallbackData("edit");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Удалить \uD83D\uDDD1");
+        button.setCallbackData("delete");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup serviceListInlineMarkup(List<ServiceType> serviceList) {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+        for (ServiceType type : serviceList) {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            buttonRow = new ArrayList<>();
+            button.setText(type.getName());
+            button.setCallbackData(type.getId().toString());
+            buttonRow.add(button);
+            rowsInline.add(buttonRow);
+        }
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Другое ➕");
+        button.setCallbackData("other");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup serviceSettingInlineMarkupService() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText("Название ");
+        button.setCallbackData("name");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
         buttonRow.add(button);
         rowsInline.add(buttonRow);
 

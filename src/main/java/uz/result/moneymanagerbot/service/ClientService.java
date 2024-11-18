@@ -17,6 +17,10 @@ public class ClientService {
 
     private final ServiceTypeService serviceTypeService;
 
+    public Client save(Client client) {
+        return clientRepository.save(client);
+    }
+
     public void defaultClientSave() {
         ServiceType service = serviceTypeService.findByName("Брендинг");
         Client client = Client.builder()
@@ -25,6 +29,11 @@ public class ClientService {
                 .serviceType(service)
                 .build();
         clientRepository.save(client);
+        System.out.println("Deafult client qo'shildi");
+    }
+
+    public void deleteById(Long id) {
+        clientRepository.deleteById(id);
     }
 
     public List<Client> findAll() {
@@ -36,4 +45,21 @@ public class ClientService {
                 .orElseThrow(() -> new NotFoundException("Client is not found with id: " + id));
     }
 
+    public void updateClientPhoneNumber(String phoneNumber, Long id) {
+        clientRepository.updateClientPhoneNumberById(phoneNumber, id);
+    }
+
+    public void updateClientServiceCategory(Long id, ServiceType service) {
+        Client client = clientRepository.findById(id).orElseThrow(() -> new NotFoundException("Client is not found with id: " + id));
+        client.setServiceType(service);
+        clientRepository.save(client);
+    }
+
+    public boolean existById(Long id) {
+        return clientRepository.existsById(id);
+    }
+
+    public void updateClientFullName(Long id, String fullName) {
+        clientRepository.updateClientFullNameById(fullName, id);
+    }
 }

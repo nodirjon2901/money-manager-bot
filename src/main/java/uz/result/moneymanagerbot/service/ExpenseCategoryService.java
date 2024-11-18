@@ -50,10 +50,22 @@ public class ExpenseCategoryService {
 
         if (!categoryList.isEmpty())
             categoryRepository.saveAll(categoryList);
+        System.out.println("Default xizmat xategoriyalari qo'shildi");
     }
 
     public ExpenseCategory findById(Integer id) {
         return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category is not found with id: " + id));
     }
 
+    public boolean existsById(Integer id) {
+        return categoryRepository.existsById(id);
+    }
+
+    public void updateCategoryName(Integer categoryId, String categoryName) {
+        categoryRepository.updateExpenseCategoryNameById(categoryName, categoryId);
+    }
+
+    public void deleteById(Integer id) {
+        categoryRepository.deleteById(id);
+    }
 }
