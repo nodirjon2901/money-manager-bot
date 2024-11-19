@@ -1,5 +1,10 @@
 package uz.result.moneymanagerbot.bot;
 
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,24 +12,24 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.File;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import uz.result.moneymanagerbot.model.*;
 import uz.result.moneymanagerbot.service.*;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -382,10 +387,7 @@ public class AdminBotService {
     }
 
     private String showTransactionCommit(String comment) {
-        if (comment == null) {
-            return "НЕТ❌";
-        } else
-            return "Есть✅";
+        return Objects.requireNonNullElse(comment, "НЕТ❌");
     }
 
     private String showTransactionFile(FileEntity file) {
@@ -859,5 +861,169 @@ public class AdminBotService {
         sendMessage.setParseMode("Markdown");
         bot.execute(sendMessage);
         commentHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void reportControlHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Отчеты:");
+        sendMessage.setReplyMarkup(markupService.reportFormReplyMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.REPORT_FORM);
+    }
+
+    @SneakyThrows
+    public void incomeTransactionListForLastMonthHandler(Long chatId, TelegramWebhookBot bot) {
+        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.getIncomeTransactionsForLastMonth());
+        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
+        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
+        sendMessage.setParseMode("Markdown");
+        trickMessageForMonthlyIncomeReportHandler(chatId, bot);
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.MONTHLY_REPORT_LIST);
+    }
+
+    private String getMonthlyIncomeTransactionList(List<Transaction> incomeTransactionsForLastMonth) {
+        double summa = 0;
+        StringBuilder text = new StringBuilder("*Последние ежемесячные отчеты о доходах*\n\n");
+        for (Transaction transaction : incomeTransactionsForLastMonth) {
+            if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
+                text.append("*Тип транзакции: *").append(showTransactionType(transaction.getTransactionType())).append("\n")
+                        .append("*Валюта: *").append(showTransactionMoneyType(transaction.getMoneyType())).append("\n")
+                        .append("*Сумма транзакции: *").append(transaction.getSumma()).append("\n")
+                        .append("*Дата транзакции: *").append(transaction.getTransactionDate()).append("\n")
+                        .append("*Клиент дохода от транзакции: *").append(transaction.getClient().getFullName()).append("\n")
+                        .append("*Номер телефона клиента: *").append(transaction.getClient().getPhoneNumber()).append("\n")
+                        .append("*Тип услуги клиента: *").append(transaction.getClient().getServiceType().getName()).append("\n\n");
+                summa += transaction.getSumma();
+            }
+            if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
+                text.append("*Тип транзакции: *").append(showTransactionType(transaction.getTransactionType())).append("\n")
+                        .append("*Валюта: *").append(showTransactionMoneyType(transaction.getMoneyType())).append("\n")
+                        .append("*Сумма транзакции: *").append(transaction.getSumma()).append("\n")
+                        .append("*Дата транзакции: *").append(transaction.getTransactionDate()).append("\n")
+                        .append("*Категория расхода по транзакции: *").append(transaction.getExpenseCategory().getName()).append("\n\n");
+                summa += transaction.getSumma();
+            }
+            if (transaction.getTransactionType().equals(TransactionType.TRANSFER)) {
+                text.append("*Тип транзакции: *").append(showTransactionType(transaction.getTransactionType())).append("\n")
+                        .append("*Валюта: *").append(showTransactionMoneyType(transaction.getMoneyType())).append("\n")
+                        .append("*Сумма транзакции: *").append(transaction.getSumma()).append("\n")
+                        .append("*Дата транзакции: *").append(transaction.getTransactionDate()).append("\n\n");
+                summa += transaction.getSumma();
+            }
+        }
+        text.append("Итоговая сумма: ").append(summa);
+        return text.toString();
+    }
+
+
+    @SneakyThrows
+    private void trickMessageForMonthlyIncomeReportHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Пожалуйста, вы можете ознакомиться с ежемесячными отчетами о доходах!");
+        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
+        bot.execute(sendMessage);
+    }
+
+    public void installFileIncomeTransactionPdfHandler(Long chatId, TelegramWebhookBot bot) {
+        List<Transaction> transactions = transactionService.getIncomeTransactionsForLastMonth();
+        com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            Font font = loadFont();
+            document.add(new Paragraph("Последние ежемесячные отчеты о доходах\n\n", font));
+            double summa = 0;
+            for (Transaction transaction : transactions) {
+                String transactionText = "Тип транзакции: " + showTransactionType(transaction.getTransactionType()) + "\n" +
+                        "Валюта: " + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
+                        "Сумма транзакции: " + transaction.getSumma() + "\n" +
+                        "Дата транзакции: " + transaction.getTransactionDate() + "\n" +
+                        "Клиент дохода от транзакции: " + transaction.getClient().getFullName() + "\n" +
+                        "Номер телефона клиента: " + transaction.getClient().getPhoneNumber() + "\n" +
+                        "Тип услуги клиента: " + transaction.getClient().getServiceType().getName() + "\n\n";
+                summa += transaction.getSumma();
+                document.add(new Paragraph(transactionText, font));
+            }
+            document.add(new Paragraph("Итоговая сумма", font));
+            document.close();
+            InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Transaction_Report.pdf");
+            SendDocument sendDocument = new SendDocument();
+            sendDocument.setChatId(chatId.toString());
+            sendDocument.setDocument(inputFile);
+            bot.execute(sendDocument);
+            reportControlHandler(chatId, bot);
+        } catch (DocumentException | IOException | TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Font loadFont() throws IOException, DocumentException {
+        InputStream fontStream = getClass().getResourceAsStream("/fonts/arial.ttf");
+        if (fontStream == null) {
+            throw new FileNotFoundException("Font file not found in resources: " + "/fonts/arial.ttf");
+        }
+        BaseFont baseFont = BaseFont.createFont("/fonts/arial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, fontStream.readAllBytes(), null);
+        return new Font(baseFont, (float) 12);
+    }
+
+    @SneakyThrows
+    public void expenseTransactionListForLastMonthHandler(Long chatId, TelegramWebhookBot bot) {
+        String monthlyExpenseTransactionList = getMonthlyIncomeTransactionList(transactionService.getExpenseTransactionsForLastMonth());
+        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyExpenseTransactionList);
+        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
+        sendMessage.setParseMode("Markdown");
+        trickMessageForMonthlyIncomeReportHandler(chatId, bot);
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.MONTHLY_REPORT_LIST_EXPENSE);
+    }
+
+    public void installFileExpenseTransactionPdfHandler(Long chatId, TelegramWebhookBot bot) {
+        List<Transaction> transactions = transactionService.getExpenseTransactionsForLastMonth();
+        com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            Font font = loadFont();
+            double summa = 0;
+            document.add(new Paragraph("Последние ежемесячные отчеты о доходах\n\n", font));
+            for (Transaction transaction : transactions) {
+                String transactionText = "Тип транзакции: " + showTransactionType(transaction.getTransactionType()) + "\n" +
+                        "Валюта: " + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
+                        "Сумма транзакции: " + transaction.getSumma() + "\n" +
+                        "Дата транзакции: " + transaction.getTransactionDate() + "\n" +
+                        "Категория расхода по транзакции: " + transaction.getExpenseCategory().getName() + "\n\n";
+                summa += transaction.getSumma();
+                document.add(new Paragraph(transactionText, font));
+            }
+            document.add(new Paragraph("Итоговая сумма", font));
+            document.close();
+            InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Transaction_Report.pdf");
+            SendDocument sendDocument = new SendDocument();
+            sendDocument.setChatId(chatId.toString());
+            sendDocument.setDocument(inputFile);
+            bot.execute(sendDocument);
+            reportControlHandler(chatId, bot);
+        } catch (DocumentException | IOException | TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SneakyThrows
+    public void saldoViewHandler(Long chatId, TelegramWebhookBot bot) {
+        List<Transaction> transactionList = transactionService.findAll();
+        double income=0;
+        double expense=0;
+        for (Transaction transaction : transactionList) {
+            if (transaction.getTransactionType().equals(TransactionType.INCOME)){
+                income+= transaction.getSumma();
+            }
+            if (transaction.getTransactionType().equals(TransactionType.EXPENSE)){
+                expense+=transaction.getSumma();
+            }
+        }
+        SendMessage sendMessage=new SendMessage(chatId.toString(),"Сальдо: "+(income-expense));
+        bot.execute(sendMessage);
     }
 }

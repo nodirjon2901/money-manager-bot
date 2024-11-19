@@ -432,4 +432,54 @@ public class MarkupService {
         inlineKeyboard.setKeyboard(rowsInline);
         return inlineKeyboard;
     }
+
+    public ReplyKeyboard reportFormReplyMarkup() {
+        ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
+        replyKeyboard.setResizeKeyboard(true);
+        List<KeyboardRow> rows = new ArrayList<>();
+
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton b1 = new KeyboardButton("Доходы за месяц");
+        row.add(b1);
+
+        KeyboardButton b2 = new KeyboardButton("Расходы за месяц");
+        row.add(b2);
+        rows.add(row);
+
+        row = new KeyboardRow();
+        KeyboardButton b3 = new KeyboardButton("Сальдо");
+        row.add(b3);
+
+        KeyboardButton b4 = new KeyboardButton("Дополнительные отчеты");
+        row.add(b4);
+        rows.add(row);
+
+        row = new KeyboardRow();
+        KeyboardButton back = new KeyboardButton("Назад\uD83D\uDD19");
+        row.add(back);
+        rows.add(row);
+        replyKeyboard.setKeyboard(rows);
+        return replyKeyboard;
+    }
+
+    public InlineKeyboardMarkup monthlyIncomeReportInlineMarkup() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Установить PDF-файл");
+        button.setCallbackData("install");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
 }

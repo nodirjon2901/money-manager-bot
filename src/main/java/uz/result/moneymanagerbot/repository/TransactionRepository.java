@@ -11,6 +11,8 @@ import uz.result.moneymanagerbot.model.TransactionType;
 import uz.result.moneymanagerbot.model.UserState;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -43,5 +45,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Transactional
     @Query(value = "update transactions set transaction_status=:status where id=:id", nativeQuery = true)
     void updateTransactionStatusById(@Param("status") String status, @Param("id") Long id);
+
+    @Query(value = "SELECT * FROM transactions t WHERE t.transaction_type = 'INCOME' AND t.transaction_date >= :startDate AND t.transaction_date <= :endDate", nativeQuery = true)
+    List<Transaction> findAllIncomeTransactionsWithinOneMonth(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query(value = "SELECT * FROM transactions t WHERE t.transaction_type = 'EXPENSE' AND t.transaction_date >= :startDate AND t.transaction_date <= :endDate", nativeQuery = true)
+    List<Transaction> findAllExpenseTransactionsWithinOneMonth(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
 
 }

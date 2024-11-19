@@ -8,6 +8,9 @@ import uz.result.moneymanagerbot.repository.TransactionRepository;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -78,4 +81,21 @@ public class TransactionService {
         transaction.setClient(client);
         transactionRepository.save(transaction);
     }
+
+    public List<Transaction> getIncomeTransactionsForLastMonth() {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusMonths(1);
+        return transactionRepository.findAllIncomeTransactionsWithinOneMonth(startDate, endDate);
+    }
+
+    public List<Transaction> getExpenseTransactionsForLastMonth() {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusMonths(1);
+        return transactionRepository.findAllExpenseTransactionsWithinOneMonth(startDate, endDate);
+    }
+
+    public List<Transaction> findAll() {
+        return transactionRepository.findAll();
+    }
+
 }

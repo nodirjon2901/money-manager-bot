@@ -62,15 +62,20 @@ public class HandlerService {
                                 adminBotService.serviceControlHandler(chatId, bot);
                         case "\uD83D\uDCC8Управление категориями услуг" ->
                                 adminBotService.categoryControlHandler(chatId, bot);
+                        case "\uD83D\uDCD1Отчеты"->adminBotService.reportControlHandler(chatId,bot);
                     }
                 }
                 case ADD_TRANSACTION -> {
                     switch (text) {
-                        case "Доход", "Расход" -> adminBotService.incomeMessageHandler(chatId, text, bot);
-                        case "Перемещение" -> {
-//                            adminBotService.transferMessageHandler(chatId, text, bot);
-                            adminBotService.incomeMessageHandler(chatId, text, bot);
-                        }
+                        case "Доход", "Расход", "Перемещение" -> adminBotService.incomeMessageHandler(chatId, text, bot);
+                        case "Назад\uD83D\uDD19" -> adminBotService.baseMenuForBackHandler(chatId, bot);
+                    }
+                }
+                case REPORT_FORM -> {
+                    switch (text){
+                        case "Доходы за месяц"->adminBotService.incomeTransactionListForLastMonthHandler(chatId,bot);
+                        case "Расходы за месяц"->adminBotService.expenseTransactionListForLastMonthHandler(chatId,bot);
+                        case "Сальдо"->adminBotService.saldoViewHandler(chatId,bot);
                         case "Назад\uD83D\uDD19" -> adminBotService.baseMenuForBackHandler(chatId, bot);
                     }
                 }
@@ -245,6 +250,18 @@ public class HandlerService {
                     adminBotService.addServiceHandler(chatId, currentState, bot);
                 } else {
                     adminBotService.setCategoryInClientHandler(chatId, data, bot);
+                }
+            }
+            case MONTHLY_REPORT_LIST->{
+                switch (data){
+                    case "back"->adminBotService.reportControlHandler(chatId, bot);
+                    case "install"->adminBotService.installFileIncomeTransactionPdfHandler(chatId,bot);
+                }
+            }
+            case MONTHLY_REPORT_LIST_EXPENSE -> {
+                switch (data){
+                    case "back"->adminBotService.reportControlHandler(chatId, bot);
+                    case "install"->adminBotService.installFileExpenseTransactionPdfHandler(chatId,bot);
                 }
             }
         }
