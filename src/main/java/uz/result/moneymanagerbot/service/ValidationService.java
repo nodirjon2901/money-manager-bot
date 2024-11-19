@@ -2,6 +2,10 @@ package uz.result.moneymanagerbot.service;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 @Service
 public class ValidationService {
 
@@ -13,5 +17,28 @@ public class ValidationService {
             return false;
         }
     }
+
+    public boolean isValidDateRange(String dateRange) {
+        if (dateRange == null || !dateRange.contains("/")) {
+            return false;
+        }
+
+        String[] dates = dateRange.split("/");
+        if (dates.length != 2) {
+            return false;
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            LocalDate startDate = LocalDate.parse(dates[0], formatter);
+            LocalDate endDate = LocalDate.parse(dates[1], formatter);
+
+            return !startDate.isAfter(endDate);
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
 
 }

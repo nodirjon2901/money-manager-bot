@@ -49,8 +49,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query(value = "SELECT * FROM transactions t WHERE t.transaction_type = 'INCOME' AND t.transaction_date >= :startDate AND t.transaction_date <= :endDate", nativeQuery = true)
     List<Transaction> findAllIncomeTransactionsWithinOneMonth(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
+    @Query(value = "SELECT * FROM transactions t WHERE t.transaction_type = 'INCOME' AND t.client_id = :clientId", nativeQuery = true)
+    List<Transaction> findAllIncomeTransactionsWithClientId(@Param("clientId") Long clientId);
+
     @Query(value = "SELECT * FROM transactions t WHERE t.transaction_type = 'EXPENSE' AND t.transaction_date >= :startDate AND t.transaction_date <= :endDate", nativeQuery = true)
     List<Transaction> findAllExpenseTransactionsWithinOneMonth(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-
+    @Query("SELECT t FROM transactions t WHERE t.transactionType = 'INCOME' AND t.client.serviceType.id = :serviceId")
+    List<Transaction> findAllIncomeTransactionsWithClientServiceId(@Param("serviceId") Integer serviceId);
 }

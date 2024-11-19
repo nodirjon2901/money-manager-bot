@@ -12,6 +12,8 @@ public class Sessions {
 
     private static final ConcurrentHashMap<Long, Integer> categoryIds = new ConcurrentHashMap<>();
 
+    private static final ConcurrentHashMap<Long, String> period = new ConcurrentHashMap<>();
+
     public static void addTransactionId(Long chatId, Long transactionId) {
         transactionIds.put(chatId, transactionId);
     }
@@ -58,6 +60,18 @@ public class Sessions {
 
     public static void removeCategoryId(Long chatId) {
         categoryIds.remove(chatId);
+    }
+
+    public static void addPeriod(Long chatId, String periodText) {
+        period.put(chatId, periodText);
+    }
+
+    public static String getPeriod(Long chatId) {
+        return period.getOrDefault(chatId, " ");
+    }
+
+    public static void removePeriod(Long chatId) {
+        period.remove(chatId);
     }
 
     public static void clearSessions() {

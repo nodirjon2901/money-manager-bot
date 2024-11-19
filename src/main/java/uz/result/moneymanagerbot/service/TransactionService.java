@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @Service
@@ -98,4 +100,38 @@ public class TransactionService {
         return transactionRepository.findAll();
     }
 
+    public List<Transaction> findAllIncomeTransactionsWithClientId(Long clientId) {
+        return transactionRepository.findAllIncomeTransactionsWithClientId(clientId);
+    }
+
+    public List<Transaction> findAllIncomeTransactionsWithClientService(Integer serviceId) {
+        return transactionRepository.findAllIncomeTransactionsWithClientServiceId(serviceId);
+    }
+
+    public List<Transaction> findAllIncomeTransactionsWithPeriod(String period) {
+        LocalDate[] dates = parseDateRange(period);
+        LocalDate startDate = dates[0];
+        LocalDate endDate = dates[1];
+        return transactionRepository.findAllIncomeTransactionsWithinOneMonth(startDate, endDate);
+    }
+
+    private LocalDate[] parseDateRange(String dateRange) {
+        if (dateRange == null || !dateRange.contains("/")) {
+            return null;
+        }
+
+        String[] dates = dateRange.split("/");
+        if (dates.length != 2) {
+            return null;
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        try {
+            LocalDate startDate = LocalDate.parse(dates[0], formatter);
+            LocalDate endDate = LocalDate.parse(dates[1], formatter);
+            return new LocalDate[]{startDate, endDate};
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
 }
