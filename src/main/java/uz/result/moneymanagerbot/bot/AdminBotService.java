@@ -945,7 +945,7 @@ public class AdminBotService {
                 summa += transaction.getSumma();
                 document.add(new Paragraph(transactionText, font));
             }
-            document.add(new Paragraph("Итоговая сумма", font));
+            document.add(new Paragraph("Итоговая сумма: "+summa, font));
             document.close();
             InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Transaction_Report.pdf");
             SendDocument sendDocument = new SendDocument();
@@ -997,7 +997,7 @@ public class AdminBotService {
                 summa += transaction.getSumma();
                 document.add(new Paragraph(transactionText, font));
             }
-            document.add(new Paragraph("Итоговая сумма", font));
+            document.add(new Paragraph("Итоговая сумма: "+summa, font));
             document.close();
             InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Transaction_Report.pdf");
             SendDocument sendDocument = new SendDocument();
