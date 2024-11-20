@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -93,7 +94,7 @@ public class TransactionService {
     public List<Transaction> getExpenseTransactionsForLastMonth() {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusMonths(1);
-        return transactionRepository.findAllExpenseTransactionsWithinOneMonth(startDate, endDate);
+        return transactionRepository.findAllExpenseTransactionsWithinOneMonth(startDate,endDate);
     }
 
     public List<Transaction> findAll() {
@@ -115,6 +116,13 @@ public class TransactionService {
         return transactionRepository.findAllIncomeTransactionsWithinOneMonth(startDate, endDate);
     }
 
+    public List<Transaction> findAllExpenseTransactionsWithPeriod(String period) {
+        LocalDate[] dates = parseDateRange(period);
+        LocalDate startDate = dates[0];
+        LocalDate endDate = dates[1];
+        return transactionRepository.findAllExpenseTransactionsWithinOneMonth(startDate,endDate);
+    }
+
     private LocalDate[] parseDateRange(String dateRange) {
         if (dateRange == null || !dateRange.contains("/")) {
             return null;
@@ -133,5 +141,9 @@ public class TransactionService {
         } catch (DateTimeParseException e) {
             return null;
         }
+    }
+
+    public List<Transaction> findAllExpenseTransactionsWithClientCategory(Integer id) {
+        return transactionRepository.findAllExpenseTransactionsWithCategoryId(id);
     }
 }

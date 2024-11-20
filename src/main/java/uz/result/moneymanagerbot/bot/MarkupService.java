@@ -469,7 +469,7 @@ public class MarkupService {
 
         InlineKeyboardButton button = new InlineKeyboardButton();
         buttonRow = new ArrayList<>();
-        button.setText("Установить PDF-файл");
+        button.setText("Установить EXCEL-файл");
         button.setCallbackData("install");
         buttonRow.add(button);
 
@@ -512,6 +512,30 @@ public class MarkupService {
         return replyKeyboard;
     }
 
+    public ReplyKeyboard additionalExpenseReportReplyMarkup() {
+        ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
+        replyKeyboard.setResizeKeyboard(true);
+        List<KeyboardRow> rows = new ArrayList<>();
+
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton b1 = new KeyboardButton("Категорию расходов");
+        row.add(b1);
+
+        KeyboardButton b2 = new KeyboardButton("Период");
+        row.add(b2);
+        rows.add(row);
+
+        row = new KeyboardRow();
+        KeyboardButton b3 = new KeyboardButton("Нет");
+        row.add(b3);
+
+        KeyboardButton back = new KeyboardButton("Назад\uD83D\uDD19");
+        row.add(back);
+        rows.add(row);
+        replyKeyboard.setKeyboard(rows);
+        return replyKeyboard;
+    }
+
     public ReplyKeyboard clientListForFilterInlineMarkup(List<Client> clientList) {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -544,6 +568,29 @@ public class MarkupService {
             buttonRow = new ArrayList<>();
             button.setText(type.getName());
             button.setCallbackData(type.getId().toString());
+            buttonRow.add(button);
+            rowsInline.add(buttonRow);
+        }
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public ReplyKeyboard serviceOfCategoryListForFilterInlineMarkup(List<ExpenseCategory> categoryList) {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+        for (ExpenseCategory category : categoryList) {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            buttonRow = new ArrayList<>();
+            button.setText(category.getName());
+            button.setCallbackData(category.getId().toString());
             buttonRow.add(button);
             rowsInline.add(buttonRow);
         }

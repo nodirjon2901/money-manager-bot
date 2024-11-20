@@ -57,4 +57,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query("SELECT t FROM transactions t WHERE t.transactionType = 'INCOME' AND t.client.serviceType.id = :serviceId")
     List<Transaction> findAllIncomeTransactionsWithClientServiceId(@Param("serviceId") Integer serviceId);
+
+    @Query("SELECT t FROM transactions t WHERE t.transactionType = 'EXPENSE' AND t.expenseCategory.id = :categoryId")
+    List<Transaction> findAllExpenseTransactionsWithCategoryId(@Param("categoryId") Integer categoryId);
 }
