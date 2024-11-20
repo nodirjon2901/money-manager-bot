@@ -48,6 +48,22 @@ public class MarkupService {
         rows.add(row);
 
         row = new KeyboardRow();
+        KeyboardButton a1 = new KeyboardButton("Доход");
+        row.add(a1);
+
+        KeyboardButton a2 = new KeyboardButton("Расход");
+        row.add(a2);
+
+        KeyboardButton a3 = new KeyboardButton("Перемещение");
+        row.add(a3);
+        rows.add(row);
+
+        row = new KeyboardRow();
+        KeyboardButton balance = new KeyboardButton("\uD83D\uDCB3Баланс");
+        row.add(balance);
+        rows.add(row);
+
+        row = new KeyboardRow();
         KeyboardButton b5 = new KeyboardButton("⚙️Настройки и доступы");
         row.add(b5);
         rows.add(row);

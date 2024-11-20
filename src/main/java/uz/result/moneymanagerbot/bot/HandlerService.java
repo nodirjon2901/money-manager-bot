@@ -68,6 +68,8 @@ public class HandlerService {
                         case "\uD83D\uDCC8Управление категориями услуг" ->
                                 adminBotService.categoryControlHandler(chatId, bot);
                         case "\uD83D\uDCD1Отчеты" -> adminBotService.reportControlHandler(chatId, bot);
+                        case "Доход","Расход","Перемещение"->adminBotService.transactionListByType(chatId,text,bot);
+                        case "\uD83D\uDCB3Баланс"->adminBotService.viewBalanceHandler(chatId,bot);
                     }
                 }
                 case ADD_TRANSACTION -> {
