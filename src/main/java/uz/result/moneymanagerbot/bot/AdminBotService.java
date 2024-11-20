@@ -2,9 +2,7 @@ package uz.result.moneymanagerbot.bot;
 
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Font;
-import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.poi.ss.usermodel.*;
@@ -107,6 +105,7 @@ public class AdminBotService {
     public void startStateHandler(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "*Введите ваш пароль: *");
         sendMessage.setParseMode("Markdown");
+        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.PASSWORD);
     }
@@ -1079,8 +1078,13 @@ public class AdminBotService {
     }
 
 
+    @SneakyThrows
     public void additionalReport(Long chatId, TelegramWebhookBot bot) {
-
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "По какому фильтру вы хотите увидеть отчет?");
+        sendMessage.setReplyMarkup(markupService.additionalFilterReportReplyMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.ADDITIONAL_REPORT);
+        Sessions.removePeriod(chatId);
     }
 
     @SneakyThrows
@@ -1089,6 +1093,9 @@ public class AdminBotService {
         sendMessage.setReplyMarkup(markupService.additionalReportReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADDITIONAL_FILTER_INCOME);
+        Sessions.removeClientId(chatId);
+        Sessions.removeServiceId(chatId);
+        Sessions.removePeriod(chatId);
     }
 
     @SneakyThrows
@@ -1361,6 +1368,8 @@ public class AdminBotService {
         sendMessage.setReplyMarkup(markupService.additionalExpenseReportReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADDITIONAL_FILTER_EXPENSE);
+        Sessions.removeCategoryId(chatId);
+        Sessions.removePeriod(chatId);
     }
 
     @SneakyThrows
@@ -1535,4 +1544,286 @@ public class AdminBotService {
     }
 
 
+    @SneakyThrows
+    public void additionalReportByPeriod(Long chatId, TelegramWebhookBot bot) {
+        trickMessageForFilterByPeriodAdditionalReport(chatId, bot);
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Укажите период в указанном формате yyyy-MM-dd/yyyy-MM-dd (например, 2024-11-18/2024-12-18).");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.ADDITIONAL_REPORT_DATE);
+    }
+
+    @SneakyThrows
+    private void trickMessageForFilterByPeriodAdditionalReport(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Вы можете посмотреть отчеты по периодам.");
+        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
+        bot.execute(sendMessage);
+    }
+
+    @SneakyThrows
+    public void additionalReportDateStateHandler(Long chatId, String period, Integer messageId, TelegramWebhookBot bot) {
+        if (!validationService.isValidDateRange(period)) {
+            warningMessageForPeriod(chatId, messageId, bot);
+            return;
+        }
+        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllTransactionsWithPeriod(period));
+        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
+        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
+        sendMessage.setParseMode("Markdown");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.REPORT_LIST_BY_PERIOD);
+        Sessions.addPeriod(chatId, period);
+    }
+
+    public void installAdditionalReportByPeriod(Long chatId, TelegramWebhookBot bot) {
+        List<Transaction> transactions = transactionService.findAllTransactionsWithPeriod(Sessions.getPeriod(chatId));
+        Sessions.removePeriod(chatId);
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
+
+            // Sarlavhalar uchun satr
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("Тип транзакции");
+            headerRow.createCell(1).setCellValue("Валюта");
+            headerRow.createCell(2).setCellValue("Сумма транзакции");
+            headerRow.createCell(3).setCellValue("Дата транзакции");
+            headerRow.createCell(4).setCellValue("Категория расхода / Клиент дохода");
+            headerRow.createCell(5).setCellValue("Номер телефона клиента");
+            headerRow.createCell(6).setCellValue("Тип услуги клиента");
+
+            int rowIdx = 1;
+            double summa = 0;
+
+            for (Transaction transaction : transactions) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
+                row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
+                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
+
+                // Transaction turi bo'yicha ma'lumotlarni to'ldirish
+                if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
+                    row.createCell(4).setCellValue(transaction.getClient().getFullName());
+                    row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
+                    row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
+                } else if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
+                    row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
+                }
+
+                // TRANSFER uchun faqat umumiy ma'lumotlar kerak
+                summa += transaction.getSumma();
+            }
+
+            // Yakuniy summa uchun oxirgi satr
+            Row totalRow = sheet.createRow(rowIdx + 1);
+            Cell totalLabelCell = totalRow.createCell(0);
+            totalLabelCell.setCellValue("Итоговая сумма:");
+
+            CellStyle style = workbook.createCellStyle();
+            style.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.getIndex());
+            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            totalLabelCell.setCellStyle(style);
+
+            Cell totalSumCell = totalRow.createCell(2);
+            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellStyle(style);
+
+            workbook.write(outputStream);
+
+            // Telegram orqali yuborish
+            InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Отчет_о_транзакциях.xlsx");
+            SendDocument sendDocument = new SendDocument();
+            sendDocument.setChatId(chatId.toString());
+            sendDocument.setDocument(inputFile);
+            bot.execute(sendDocument);
+
+            reportControlHandler(chatId, bot);
+        } catch (IOException | TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SneakyThrows
+    public void additionalReportByMoneyType(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Выберите валюту");
+        sendMessage.setReplyMarkup(markupService.moneyTypeListInlineMarkupKeyBoard());
+        trickMessageForAdditionalReportByMoneyType(chatId, bot);
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.ADDITIONAL_REPORT_BY_MONEY_TYPE);
+        Sessions.removeMoneyType(chatId);
+    }
+
+    @SneakyThrows
+    private void trickMessageForAdditionalReportByMoneyType(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Вы можете посмотреть дополнительные отчеты по типу валюты");
+        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
+        bot.execute(sendMessage);
+    }
+
+    @SneakyThrows
+    public void showAdditionalReportByMoneyType(Long chatId, String moneyType, TelegramWebhookBot bot) {
+        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllTransactionsByMoneyType(moneyType));
+        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
+        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
+        sendMessage.setParseMode("Markdown");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.REPORT_LIST_BY_MONEY_TYPE);
+        Sessions.addMoneyType(chatId, moneyType);
+    }
+
+    public void installAdditionalReportByMoneyType(Long chatId, TelegramWebhookBot bot) {
+        List<Transaction> transactions = transactionService.findAllTransactionsByMoneyType(Sessions.getMoneyType(chatId));
+        Sessions.removeMoneyType(chatId);
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
+
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("Тип транзакции");
+            headerRow.createCell(1).setCellValue("Валюта");
+            headerRow.createCell(2).setCellValue("Сумма транзакции");
+            headerRow.createCell(3).setCellValue("Дата транзакции");
+            headerRow.createCell(4).setCellValue("Категория расхода / Клиент дохода");
+            headerRow.createCell(5).setCellValue("Номер телефона клиента");
+            headerRow.createCell(6).setCellValue("Тип услуги клиента");
+
+            int rowIdx = 1;
+            double summa = 0;
+
+            for (Transaction transaction : transactions) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
+                row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
+                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
+
+                if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
+                    row.createCell(4).setCellValue(transaction.getClient().getFullName());
+                    row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
+                    row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
+                } else if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
+                    row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
+                }
+
+                summa += transaction.getSumma();
+            }
+
+            Row totalRow = sheet.createRow(rowIdx + 1);
+            Cell totalLabelCell = totalRow.createCell(0);
+            totalLabelCell.setCellValue("Итоговая сумма:");
+
+            CellStyle style = workbook.createCellStyle();
+            style.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.getIndex());
+            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            totalLabelCell.setCellStyle(style);
+
+            Cell totalSumCell = totalRow.createCell(2);
+            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellStyle(style);
+
+            workbook.write(outputStream);
+
+            InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Отчет_о_транзакциях.xlsx");
+            SendDocument sendDocument = new SendDocument();
+            sendDocument.setChatId(chatId.toString());
+            sendDocument.setDocument(inputFile);
+            bot.execute(sendDocument);
+
+            reportControlHandler(chatId, bot);
+        } catch (IOException | TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SneakyThrows
+    public void additionalReportByTransactionType(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Вы можете посмотреть дополнительные отчеты по типу транзакции");
+        sendMessage.setReplyMarkup(markupService.transactionTypeReplyMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.ADDITIONAL_REPORT_BY_TRANSACTION_TYPE);
+        Sessions.removeTransactionType(chatId);
+    }
+
+    @SneakyThrows
+    public void additionalReportListByTransactionType(Long chatId, String transactionType, TelegramWebhookBot bot) {
+        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllTransactionsByTransactionType(Objects.requireNonNull(getTransactionType(transactionType)).toString()));
+        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
+        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
+        sendMessage.setParseMode("Markdown");
+        trickMessageForReportList(chatId, bot);
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.REPORT_LIST_BY_TRANSACTION_TYPE);
+        Sessions.addTransactionType(chatId, Objects.requireNonNull(getTransactionType(transactionType)).toString());
+    }
+
+    @SneakyThrows
+    private void trickMessageForReportList(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Список транзакций");
+        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
+        bot.execute(sendMessage);
+    }
+
+    public void installAdditionalReportByTransactionType(Long chatId, TelegramWebhookBot bot) {
+        List<Transaction> transactions = transactionService.findAllTransactionsByTransactionType(Sessions.getTransactionType(chatId));
+        Sessions.removeTransactionType(chatId);
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
+
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("Тип транзакции");
+            headerRow.createCell(1).setCellValue("Валюта");
+            headerRow.createCell(2).setCellValue("Сумма транзакции");
+            headerRow.createCell(3).setCellValue("Дата транзакции");
+            headerRow.createCell(4).setCellValue("Категория расхода / Клиент дохода");
+            headerRow.createCell(5).setCellValue("Номер телефона клиента");
+            headerRow.createCell(6).setCellValue("Тип услуги клиента");
+
+            int rowIdx = 1;
+            double summa = 0;
+
+            for (Transaction transaction : transactions) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
+                row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
+                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
+
+                if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
+                    row.createCell(4).setCellValue(transaction.getClient().getFullName());
+                    row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
+                    row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
+                } else if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
+                    row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
+                }
+
+                summa += transaction.getSumma();
+            }
+
+            Row totalRow = sheet.createRow(rowIdx + 1);
+            Cell totalLabelCell = totalRow.createCell(0);
+            totalLabelCell.setCellValue("Итоговая сумма:");
+
+            CellStyle style = workbook.createCellStyle();
+            style.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.getIndex());
+            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            totalLabelCell.setCellStyle(style);
+
+            Cell totalSumCell = totalRow.createCell(2);
+            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellStyle(style);
+
+            workbook.write(outputStream);
+
+            InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Отчет_о_транзакциях.xlsx");
+            SendDocument sendDocument = new SendDocument();
+            sendDocument.setChatId(chatId.toString());
+            sendDocument.setDocument(inputFile);
+            bot.execute(sendDocument);
+
+            reportControlHandler(chatId, bot);
+        } catch (IOException | TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -94,7 +94,7 @@ public class TransactionService {
     public List<Transaction> getExpenseTransactionsForLastMonth() {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusMonths(1);
-        return transactionRepository.findAllExpenseTransactionsWithinOneMonth(startDate,endDate);
+        return transactionRepository.findAllExpenseTransactionsWithinOneMonth(startDate, endDate);
     }
 
     public List<Transaction> findAll() {
@@ -120,7 +120,7 @@ public class TransactionService {
         LocalDate[] dates = parseDateRange(period);
         LocalDate startDate = dates[0];
         LocalDate endDate = dates[1];
-        return transactionRepository.findAllExpenseTransactionsWithinOneMonth(startDate,endDate);
+        return transactionRepository.findAllExpenseTransactionsWithinOneMonth(startDate, endDate);
     }
 
     private LocalDate[] parseDateRange(String dateRange) {
@@ -145,5 +145,20 @@ public class TransactionService {
 
     public List<Transaction> findAllExpenseTransactionsWithClientCategory(Integer id) {
         return transactionRepository.findAllExpenseTransactionsWithCategoryId(id);
+    }
+
+    public List<Transaction> findAllTransactionsWithPeriod(String period) {
+        LocalDate[] dates = parseDateRange(period);
+        LocalDate startDate = dates[0];
+        LocalDate endDate = dates[1];
+        return transactionRepository.findAllTransactionsWithinPeriod(startDate, endDate);
+    }
+
+    public List<Transaction> findAllTransactionsByMoneyType(String moneyType) {
+        return transactionRepository.findAllByMoneyType(moneyType);
+    }
+
+    public List<Transaction> findAllTransactionsByTransactionType(String transactionType) {
+        return transactionRepository.findAllByTransactionType(transactionType);
     }
 }

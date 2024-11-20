@@ -23,6 +23,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query(value = "update transactions set money_type=:moneyType where id=:id", nativeQuery = true)
     void updateTransactionMoneyTypeById(@Param("moneyType") String moneyType, @Param("id") Long id);
 
+    @Query(value = "select * from transactions where money_type=:moneyType", nativeQuery = true)
+    List<Transaction> findAllByMoneyType(@Param("moneyType") String moneyType);
+
     @Modifying
     @Transactional
     @Query(value = "update transactions set summa=:summa where id=:id", nativeQuery = true)
@@ -60,4 +63,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query("SELECT t FROM transactions t WHERE t.transactionType = 'EXPENSE' AND t.expenseCategory.id = :categoryId")
     List<Transaction> findAllExpenseTransactionsWithCategoryId(@Param("categoryId") Integer categoryId);
+
+    @Query(value = "SELECT * FROM transactions t WHERE t.transaction_date >= :startDate AND t.transaction_date <= :endDate", nativeQuery = true)
+    List<Transaction> findAllTransactionsWithinPeriod(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query(value = "select * from transactions where transaction_type=:type", nativeQuery = true)
+    List<Transaction> findAllByTransactionType(@Param("type") String transactionType);
+
 }

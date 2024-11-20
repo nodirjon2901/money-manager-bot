@@ -604,4 +604,92 @@ public class MarkupService {
         inlineKeyboard.setKeyboard(rowsInline);
         return inlineKeyboard;
     }
+
+    public ReplyKeyboard additionalFilterReportReplyMarkup() {
+        ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
+        replyKeyboard.setResizeKeyboard(true);
+        List<KeyboardRow> rows = new ArrayList<>();
+
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton b1 = new KeyboardButton("Типу транзакции");
+        row.add(b1);
+
+        KeyboardButton b2 = new KeyboardButton("Периоду");
+        row.add(b2);
+        rows.add(row);
+
+        row = new KeyboardRow();
+        KeyboardButton b3 = new KeyboardButton("Типу денег");
+        row.add(b3);
+
+        KeyboardButton back = new KeyboardButton("Назад\uD83D\uDD19");
+        row.add(back);
+        rows.add(row);
+        replyKeyboard.setKeyboard(rows);
+        return replyKeyboard;
+    }
+
+    public InlineKeyboardMarkup moneyTypeListInlineMarkupKeyBoard() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText("Нал суммы");
+        button.setCallbackData(MoneyType.CASH_AMOUNT.name());
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Нал валюта");
+        button.setCallbackData(MoneyType.CASH_CURRENCY.name());
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Банк");
+        button.setCallbackData(MoneyType.BANK.name());
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Карта суммы");
+        button.setCallbackData(MoneyType.CARD_AMOUNT1.name());
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Карта суммы 2");
+        button.setCallbackData(MoneyType.CARD_AMOUNT_2.name());
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Карта суммы 3");
+        button.setCallbackData(MoneyType.CARD_AMOUNT_3.name());
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Visa");
+        button.setCallbackData(MoneyType.VISA.name());
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Назад\uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
 }
