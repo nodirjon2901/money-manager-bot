@@ -1009,7 +1009,6 @@ public class AdminBotService {
         sendMessage.setReplyMarkup(markupService.additionalFilterReportReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADDITIONAL_REPORT);
-        Sessions.removePeriod(chatId);
     }
 
     @SneakyThrows
@@ -1018,9 +1017,6 @@ public class AdminBotService {
         sendMessage.setReplyMarkup(markupService.additionalReportReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADDITIONAL_FILTER_INCOME);
-        Sessions.removeClientId(chatId);
-        Sessions.removeServiceId(chatId);
-        Sessions.removePeriod(chatId);
     }
 
     @SneakyThrows
@@ -1259,8 +1255,6 @@ public class AdminBotService {
         sendMessage.setReplyMarkup(markupService.additionalExpenseReportReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADDITIONAL_FILTER_EXPENSE);
-        Sessions.removeCategoryId(chatId);
-        Sessions.removePeriod(chatId);
     }
 
     @SneakyThrows
@@ -1285,7 +1279,6 @@ public class AdminBotService {
             return;
         }
         List<Transaction> transactions = transactionService.findAllExpenseTransactionsWithPeriod(period);
-        Sessions.removePeriod(chatId);
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
 
@@ -1493,7 +1486,6 @@ public class AdminBotService {
         trickMessageForAdditionalReportByMoneyType(chatId, bot);
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADDITIONAL_REPORT_BY_MONEY_TYPE);
-        Sessions.removeMoneyType(chatId);
     }
 
     @SneakyThrows
@@ -1573,7 +1565,6 @@ public class AdminBotService {
         sendMessage.setReplyMarkup(markupService.transactionTypeReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADDITIONAL_REPORT_BY_TRANSACTION_TYPE);
-        Sessions.removeTransactionType(chatId);
     }
 
     @SneakyThrows

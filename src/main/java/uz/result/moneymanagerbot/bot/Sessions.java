@@ -12,12 +12,6 @@ public class Sessions {
 
     private static final ConcurrentHashMap<Long, Integer> categoryIds = new ConcurrentHashMap<>();
 
-    private static final ConcurrentHashMap<Long, String> period = new ConcurrentHashMap<>();
-
-    private static final ConcurrentHashMap<Long, String> moneyTypes = new ConcurrentHashMap<>();
-
-    private static final ConcurrentHashMap<Long, String> transactionTypes = new ConcurrentHashMap<>();
-
     public static void addTransactionId(Long chatId, Long transactionId) {
         transactionIds.put(chatId, transactionId);
     }
@@ -64,42 +58,6 @@ public class Sessions {
 
     public static void removeCategoryId(Long chatId) {
         categoryIds.remove(chatId);
-    }
-
-    public static void addPeriod(Long chatId, String periodText) {
-        period.put(chatId, periodText);
-    }
-
-    public static String getPeriod(Long chatId) {
-        return period.getOrDefault(chatId, " ");
-    }
-
-    public static void removePeriod(Long chatId) {
-        period.remove(chatId);
-    }
-
-    public static void addMoneyType(Long chatId, String moneyTypeText) {
-        moneyTypes.put(chatId, moneyTypeText);
-    }
-
-    public static String getMoneyType(Long chatId) {
-        return moneyTypes.getOrDefault(chatId, " ");
-    }
-
-    public static void removeMoneyType(Long chatId) {
-        moneyTypes.remove(chatId);
-    }
-
-    public static void addTransactionType(Long chatId, String transactionType) {
-        transactionTypes.put(chatId, transactionType);
-    }
-
-    public static String getTransactionType(Long chatId) {
-        return transactionTypes.getOrDefault(chatId, " ");
-    }
-
-    public static void removeTransactionType(Long chatId) {
-        transactionTypes.remove(chatId);
     }
 
     public static void clearSessions() {
