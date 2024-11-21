@@ -1,8 +1,5 @@
 package uz.result.moneymanagerbot.bot;
 
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.pdf.BaseFont;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.poi.ss.usermodel.*;
@@ -875,58 +872,6 @@ public class AdminBotService {
 
     @SneakyThrows
     public void incomeTransactionListForLastMonthHandler(Long chatId, TelegramWebhookBot bot) {
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.getIncomeTransactionsForLastMonth());
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        trickMessageForMonthlyIncomeReportHandler(chatId, bot);
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.MONTHLY_REPORT_LIST);
-    }
-
-    private String getMonthlyIncomeTransactionList(List<Transaction> incomeTransactionsForLastMonth) {
-        double summa = 0;
-        StringBuilder text = new StringBuilder("*Последние ежемесячные отчеты о доходах*\n\n");
-        for (Transaction transaction : incomeTransactionsForLastMonth) {
-            if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
-                text.append("*Тип транзакции: *").append(showTransactionType(transaction.getTransactionType())).append("\n")
-                        .append("*Валюта: *").append(showTransactionMoneyType(transaction.getMoneyType())).append("\n")
-                        .append("*Сумма транзакции: *").append(transaction.getSumma()).append("\n")
-                        .append("*Дата транзакции: *").append(transaction.getTransactionDate()).append("\n")
-                        .append("*Клиент дохода от транзакции: *").append(transaction.getClient().getFullName()).append("\n")
-                        .append("*Номер телефона клиента: *").append(transaction.getClient().getPhoneNumber()).append("\n")
-                        .append("*Тип услуги клиента: *").append(transaction.getClient().getServiceType().getName()).append("\n\n");
-                summa += transaction.getSumma();
-            }
-            if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
-                text.append("*Тип транзакции: *").append(showTransactionType(transaction.getTransactionType())).append("\n")
-                        .append("*Валюта: *").append(showTransactionMoneyType(transaction.getMoneyType())).append("\n")
-                        .append("*Сумма транзакции: *").append(transaction.getSumma()).append("\n")
-                        .append("*Дата транзакции: *").append(transaction.getTransactionDate()).append("\n")
-                        .append("*Категория расхода по транзакции: *").append(transaction.getExpenseCategory().getName()).append("\n\n");
-                summa += transaction.getSumma();
-            }
-            if (transaction.getTransactionType().equals(TransactionType.TRANSFER)) {
-                text.append("*Тип транзакции: *").append(showTransactionType(transaction.getTransactionType())).append("\n")
-                        .append("*Валюта: *").append(showTransactionMoneyType(transaction.getMoneyType())).append("\n")
-                        .append("*Сумма транзакции: *").append(transaction.getSumma()).append("\n")
-                        .append("*Дата транзакции: *").append(transaction.getTransactionDate()).append("\n\n");
-                summa += transaction.getSumma();
-            }
-        }
-        text.append("Итоговая сумма: ").append(summa);
-        return text.toString();
-    }
-
-
-    @SneakyThrows
-    private void trickMessageForMonthlyIncomeReportHandler(Long chatId, TelegramWebhookBot bot) {
-        SendMessage sendMessage = new SendMessage(chatId.toString(), "Пожалуйста, вы можете ознакомиться с ежемесячными отчетами о доходах!");
-        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
-        bot.execute(sendMessage);
-    }
-
-    public void installFileIncomeTransactionPdfHandler(Long chatId, TelegramWebhookBot bot) {
         List<Transaction> transactions = transactionService.getIncomeTransactionsForLastMonth();
 
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -983,28 +928,8 @@ public class AdminBotService {
         }
     }
 
-
-    private Font loadFont() throws IOException, DocumentException {
-        InputStream fontStream = getClass().getResourceAsStream("/fonts/arial.ttf");
-        if (fontStream == null) {
-            throw new FileNotFoundException("Font file not found in resources: " + "/fonts/arial.ttf");
-        }
-        BaseFont baseFont = BaseFont.createFont("/fonts/arial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, fontStream.readAllBytes(), null);
-        return new Font(baseFont, (float) 12);
-    }
-
     @SneakyThrows
     public void expenseTransactionListForLastMonthHandler(Long chatId, TelegramWebhookBot bot) {
-        String monthlyExpenseTransactionList = getMonthlyIncomeTransactionList(transactionService.getExpenseTransactionsForLastMonth());
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyExpenseTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        trickMessageForMonthlyIncomeReportHandler(chatId, bot);
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.MONTHLY_REPORT_LIST_EXPENSE);
-    }
-
-    public void installFileExpenseTransactionPdfHandler(Long chatId, TelegramWebhookBot bot) {
         List<Transaction> transactions = transactionService.getExpenseTransactionsForLastMonth();
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
@@ -1116,19 +1041,7 @@ public class AdminBotService {
 
     @SneakyThrows
     public void incomeTransactionListFilterByClientHandler(Long chatId, String clientId, TelegramWebhookBot bot) {
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllIncomeTransactionsWithClientId(Long.valueOf(clientId)));
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        trickMessageForMonthlyIncomeReportHandler(chatId, bot);
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.FILTER_BY_CLIENT_REPORT_LIST);
-        Sessions.addClientId(chatId, Long.valueOf(clientId));
-    }
-
-    public void installFileIncomeTransactionByClientPdfHandler(Long chatId, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllIncomeTransactionsWithClientId(Sessions.getClientId(chatId));
-        Sessions.removeClientId(chatId);
+        List<Transaction> transactions = transactionService.findAllIncomeTransactionsWithClientId(Long.valueOf(clientId));
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
             XSSFSheet sheet = workbook.createSheet("Отчет о доходных транзакциях");
@@ -1183,6 +1096,7 @@ public class AdminBotService {
         }
     }
 
+
     @SneakyThrows
     public void incomeTransactionListFilterByService(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Выберите услугу.");
@@ -1201,19 +1115,7 @@ public class AdminBotService {
 
     @SneakyThrows
     public void incomeTransactionListFilterByServiceHandler(Long chatId, String serviceId, TelegramWebhookBot bot) {
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllIncomeTransactionsWithClientService(Integer.valueOf(serviceId)));
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        trickMessageForMonthlyIncomeReportHandler(chatId, bot);
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.FILTER_BY_SERVICE_REPORT_LIST);
-        Sessions.addServiceId(chatId, Integer.valueOf(serviceId));
-    }
-
-    public void installFileIncomeTransactionByServicePdfHandler(Long chatId, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllIncomeTransactionsWithClientService(Sessions.getServiceId(chatId));
-        Sessions.removeServiceId(chatId);
+        List<Transaction> transactions = transactionService.findAllIncomeTransactionsWithClientService(Integer.valueOf(serviceId));
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
             XSSFSheet sheet = workbook.createSheet("Отчет о доходных транзакциях");
@@ -1289,25 +1191,7 @@ public class AdminBotService {
             warningMessageForPeriod(chatId, messageId, bot);
             return;
         }
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllIncomeTransactionsWithPeriod(period));
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.FILTER_BY_PERIOD_REPORT_LIST);
-        Sessions.addPeriod(chatId, period);
-    }
-
-    @SneakyThrows
-    private void warningMessageForPeriod(Long chatId, Integer messageId, TelegramWebhookBot bot) {
-        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введённый вами временной период имеет неправильный формат. Укажите период в указанном формате yyyy-MM-dd/yyyy-MM-dd (например, 2024-11-18/2024-12-18).");
-        sendMessage.setReplyToMessageId(messageId);
-        bot.execute(sendMessage);
-    }
-
-    public void installFileIncomeTransactionByPeriodPdfHandler(Long chatId, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllIncomeTransactionsWithPeriod(Sessions.getPeriod(chatId));
-        Sessions.removePeriod(chatId);
+        List<Transaction> transactions = transactionService.findAllIncomeTransactionsWithPeriod(period);
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
             XSSFSheet sheet = workbook.createSheet("Отчет о доходных транзакциях");
@@ -1363,6 +1247,13 @@ public class AdminBotService {
     }
 
     @SneakyThrows
+    private void warningMessageForPeriod(Long chatId, Integer messageId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введённый вами временной период имеет неправильный формат. Укажите период в указанном формате yyyy-MM-dd/yyyy-MM-dd (например, 2024-11-18/2024-12-18).");
+        sendMessage.setReplyToMessageId(messageId);
+        bot.execute(sendMessage);
+    }
+
+    @SneakyThrows
     public void expenseFilterForLastMonthHandler(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Вы хотите воспользоваться дополнительной возможностью фильтрации? ");
         sendMessage.setReplyMarkup(markupService.additionalExpenseReportReplyMarkup());
@@ -1393,17 +1284,7 @@ public class AdminBotService {
             warningMessageForPeriod(chatId, messageId, bot);
             return;
         }
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllExpenseTransactionsWithPeriod(period));
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.FILTER_BY_PERIOD_EXPENSE_REPORT_LIST);
-        Sessions.addPeriod(chatId, period);
-    }
-
-    public void installFileExpenseTransactionByPeriodPdfHandler(Long chatId, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllExpenseTransactionsWithPeriod(Sessions.getPeriod(chatId));
+        List<Transaction> transactions = transactionService.findAllExpenseTransactionsWithPeriod(period);
         Sessions.removePeriod(chatId);
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
@@ -1472,27 +1353,7 @@ public class AdminBotService {
 
     @SneakyThrows
     public void expenseTransactionListFilterByCategoryHandler(Long chatId, String categoryId, TelegramWebhookBot bot) {
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllExpenseTransactionsWithClientCategory(Integer.valueOf(categoryId)));
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        trickMessageForMonthlyExpanseReportHandler(chatId, bot);
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.FILTER_BY_CATEGORY_REPORT_LIST);
-        Sessions.addCategoryId(chatId, Integer.valueOf(categoryId));
-    }
-
-    @SneakyThrows
-    private void trickMessageForMonthlyExpanseReportHandler(Long chatId, TelegramWebhookBot bot) {
-        SendMessage sendMessage = new SendMessage(chatId.toString(), "Вы выбрали фильтрацию месячных расходов по категории расходов.");
-        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
-        bot.execute(sendMessage);
-    }
-
-    public void installFileExpenseTransactionByCategoryPdfHandler(Long chatId, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllExpenseTransactionsWithClientCategory(Sessions.getCategoryId(chatId));
-        Sessions.removeCategoryId(chatId);
-
+        List<Transaction> transactions = transactionService.findAllExpenseTransactionsWithClientCategory(Integer.valueOf(categoryId));
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
             XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
@@ -1543,7 +1404,6 @@ public class AdminBotService {
         }
     }
 
-
     @SneakyThrows
     public void additionalReportByPeriod(Long chatId, TelegramWebhookBot bot) {
         trickMessageForFilterByPeriodAdditionalReport(chatId, bot);
@@ -1565,23 +1425,10 @@ public class AdminBotService {
             warningMessageForPeriod(chatId, messageId, bot);
             return;
         }
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllTransactionsWithPeriod(period));
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.REPORT_LIST_BY_PERIOD);
-        Sessions.addPeriod(chatId, period);
-    }
-
-    public void installAdditionalReportByPeriod(Long chatId, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllTransactionsWithPeriod(Sessions.getPeriod(chatId));
-        Sessions.removePeriod(chatId);
-
+        List<Transaction> transactions = transactionService.findAllTransactionsWithPeriod(period);
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
 
-            // Sarlavhalar uchun satr
             Row headerRow = sheet.createRow(0);
             headerRow.createCell(0).setCellValue("Тип транзакции");
             headerRow.createCell(1).setCellValue("Валюта");
@@ -1601,7 +1448,6 @@ public class AdminBotService {
                 row.createCell(2).setCellValue(transaction.getSumma());
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
 
-                // Transaction turi bo'yicha ma'lumotlarni to'ldirish
                 if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
                     row.createCell(4).setCellValue(transaction.getClient().getFullName());
                     row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
@@ -1610,11 +1456,9 @@ public class AdminBotService {
                     row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
                 }
 
-                // TRANSFER uchun faqat umumiy ma'lumotlar kerak
                 summa += transaction.getSumma();
             }
 
-            // Yakuniy summa uchun oxirgi satr
             Row totalRow = sheet.createRow(rowIdx + 1);
             Cell totalLabelCell = totalRow.createCell(0);
             totalLabelCell.setCellValue("Итоговая сумма:");
@@ -1630,7 +1474,6 @@ public class AdminBotService {
 
             workbook.write(outputStream);
 
-            // Telegram orqali yuborish
             InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Отчет_о_транзакциях.xlsx");
             SendDocument sendDocument = new SendDocument();
             sendDocument.setChatId(chatId.toString());
@@ -1662,18 +1505,7 @@ public class AdminBotService {
 
     @SneakyThrows
     public void showAdditionalReportByMoneyType(Long chatId, String moneyType, TelegramWebhookBot bot) {
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllTransactionsByMoneyType(moneyType));
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.REPORT_LIST_BY_MONEY_TYPE);
-        Sessions.addMoneyType(chatId, moneyType);
-    }
-
-    public void installAdditionalReportByMoneyType(Long chatId, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllTransactionsByMoneyType(Sessions.getMoneyType(chatId));
-        Sessions.removeMoneyType(chatId);
+        List<Transaction> transactions = transactionService.findAllTransactionsByMoneyType(moneyType);
 
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
@@ -1746,26 +1578,7 @@ public class AdminBotService {
 
     @SneakyThrows
     public void additionalReportListByTransactionType(Long chatId, String transactionType, TelegramWebhookBot bot) {
-        String monthlyIncomeTransactionList = getMonthlyIncomeTransactionList(transactionService.findAllTransactionsByTransactionType(Objects.requireNonNull(getTransactionType(transactionType)).toString()));
-        SendMessage sendMessage = new SendMessage(chatId.toString(), monthlyIncomeTransactionList);
-        sendMessage.setReplyMarkup(markupService.monthlyIncomeReportInlineMarkup());
-        sendMessage.setParseMode("Markdown");
-        trickMessageForReportList(chatId, bot);
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.REPORT_LIST_BY_TRANSACTION_TYPE);
-        Sessions.addTransactionType(chatId, Objects.requireNonNull(getTransactionType(transactionType)).toString());
-    }
-
-    @SneakyThrows
-    private void trickMessageForReportList(Long chatId, TelegramWebhookBot bot) {
-        SendMessage sendMessage = new SendMessage(chatId.toString(), "Список транзакций");
-        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
-        bot.execute(sendMessage);
-    }
-
-    public void installAdditionalReportByTransactionType(Long chatId, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllTransactionsByTransactionType(Sessions.getTransactionType(chatId));
-        Sessions.removeTransactionType(chatId);
+        List<Transaction> transactions = transactionService.findAllTransactionsByTransactionType(Objects.requireNonNull(getTransactionType(transactionType)).toString());
 
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");

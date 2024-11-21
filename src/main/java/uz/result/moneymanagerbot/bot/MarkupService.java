@@ -478,26 +478,26 @@ public class MarkupService {
         return replyKeyboard;
     }
 
-    public InlineKeyboardMarkup monthlyIncomeReportInlineMarkup() {
-        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
-
-        InlineKeyboardButton button = new InlineKeyboardButton();
-        buttonRow = new ArrayList<>();
-        button.setText("Установить EXCEL-файл");
-        button.setCallbackData("install");
-        buttonRow.add(button);
-
-        button = new InlineKeyboardButton();
-        button.setText("Назад \uD83D\uDD19");
-        button.setCallbackData("back");
-        buttonRow.add(button);
-        rowsInline.add(buttonRow);
-
-        inlineKeyboard.setKeyboard(rowsInline);
-        return inlineKeyboard;
-    }
+//    public InlineKeyboardMarkup monthlyIncomeReportInlineMarkup() {
+//        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+//        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+//        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+//
+//        InlineKeyboardButton button = new InlineKeyboardButton();
+//        buttonRow = new ArrayList<>();
+//        button.setText("Установить EXCEL-файл");
+//        button.setCallbackData("install");
+//        buttonRow.add(button);
+//
+//        button = new InlineKeyboardButton();
+//        button.setText("Назад \uD83D\uDD19");
+//        button.setCallbackData("back");
+//        buttonRow.add(button);
+//        rowsInline.add(buttonRow);
+//
+//        inlineKeyboard.setKeyboard(rowsInline);
+//        return inlineKeyboard;
+//    }
 
     public ReplyKeyboard additionalReportReplyMarkup() {
         ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
