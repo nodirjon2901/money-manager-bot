@@ -39,30 +39,34 @@ public class MoneyManagerBotApplication implements CommandLineRunner {
         if (!userRepository.existsByChatId(chatId)) {
             User superAdmin = User.builder()
                     .chatId(chatId)
+                    .name("Nodir")
                     .password(password)
-                    .role(UserRole.ADMIN)
+                    .role(UserRole.SUPPER_ADMIN)
                     .build();
             userRepository.save(superAdmin);
             System.out.println("Nodir qo'shildi");
         }if (!userRepository.existsByChatId(56938L)) {
             User superAdmin = User.builder()
                     .chatId(56938L)
+                    .name("Sardor aka")
                     .password(password)
-                    .role(UserRole.ADMIN)
+                    .role(UserRole.SUPPER_ADMIN)
                     .build();
             userRepository.save(superAdmin);
             System.out.println("Sardor aka qo'shildi");
         }if (!userRepository.existsByChatId(6691713706L)) {
             User superAdmin = User.builder()
                     .chatId(6691713706L)
+                    .name("Rashid aka")
                     .password(password)
-                    .role(UserRole.ADMIN)
+                    .role(UserRole.SUPPER_ADMIN)
                     .build();
             userRepository.save(superAdmin);
             System.out.println("Rashid aka qo'shildi");
         }if (!userRepository.existsByChatId(1762041853L)) {
             User superAdmin = User.builder()
                     .chatId(1762041853L)
+                    .name("Davlat aka")
                     .password(password)
                     .role(UserRole.ADMIN)
                     .build();

@@ -687,4 +687,118 @@ public class MarkupService {
         inlineKeyboard.setKeyboard(rowsInline);
         return inlineKeyboard;
     }
+
+    public ReplyKeyboard settingsFormReplyMarkup(UserRole role) {
+        ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
+        replyKeyboard.setResizeKeyboard(true);
+        List<KeyboardRow> rows = new ArrayList<>();
+        if (role.equals(UserRole.SUPPER_ADMIN)) {
+            KeyboardRow row = new KeyboardRow();
+            KeyboardButton b1 = new KeyboardButton("Пользователи");
+            row.add(b1);
+
+            KeyboardButton b2 = new KeyboardButton("Просмотр текущих доступов");
+            row.add(b2);
+
+            KeyboardButton b3 = new KeyboardButton("Изменение пароля");
+            row.add(b3);
+            rows.add(row);
+        }
+        else {
+            KeyboardRow row = new KeyboardRow();
+            KeyboardButton b1 = new KeyboardButton("Просмотр текущих доступов");
+            row.add(b1);
+
+            KeyboardButton b2 = new KeyboardButton("Изменение пароля");
+            row.add(b2);
+            rows.add(row);
+        }
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton back = new KeyboardButton("Назад\uD83D\uDD19");
+        row.add(back);
+        rows.add(row);
+        replyKeyboard.setKeyboard(rows);
+        return replyKeyboard;
+    }
+
+    public InlineKeyboardMarkup userListInlineMarkup(List<User> userList) {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+        for (User user : userList) {
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            buttonRow = new ArrayList<>();
+            button.setText(user.getName());
+            button.setCallbackData(user.getId().toString());
+            buttonRow.add(button);
+            rowsInline.add(buttonRow);
+        }
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Другое ➕");
+        button.setCallbackData("other");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup roleInlineMarkup() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Администратор ");
+        button.setCallbackData("ADMIN");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Наблюдатель");
+        button.setCallbackData("OBSERVER");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup userEditFormInlineMarkup() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText("Имя");
+        button.setCallbackData("name");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("ROLE");
+        button.setCallbackData("role");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        buttonRow = new ArrayList<>();
+        button = new InlineKeyboardButton();
+        button.setText("ChatId ");
+        button.setCallbackData("chat_id");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
 }

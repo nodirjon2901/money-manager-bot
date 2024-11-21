@@ -58,7 +58,16 @@ public class HandlerService {
                         adminBotService.incomeTransactionListFilterByPeriodShow(chatId, text, message.getMessageId(), bot);
                 case ADDITIONAL_FILTER_EXPENSE_DATE ->
                         adminBotService.expenseTransactionListFilterByPeriodShow(chatId, text, message.getMessageId(), bot);
-                case ADDITIONAL_REPORT_DATE->adminBotService.additionalReportDateStateHandler(chatId,text,message.getMessageId(),bot);
+                case ADDITIONAL_REPORT_DATE ->
+                        adminBotService.additionalReportDateStateHandler(chatId, text, message.getMessageId(), bot);
+                case CURRENT_PASSWORD ->
+                        adminBotService.requestCurrentPassword(chatId, text, message.getMessageId(), bot);
+                case NEW_PASSWORD -> adminBotService.requestNewPassword(chatId, text, message.getMessageId(), bot);
+                case NEW_USER_NAME -> adminBotService.newUserNameStateHandler(chatId, text, bot);
+                case NEW_USER_CHAT_ID ->
+                        adminBotService.newUserChatIdStateHandler(chatId, text, message.getMessageId(), bot);
+                case USER_EDIT_NAME->adminBotService.requestUserEditNameStateHandler(chatId,text,bot);
+                case USER_CHAT_ID_EDIT->adminBotService.userChatIdEditHandler(chatId,text,message.getMessageId(),bot);
                 case BASE_MENU -> {
                     switch (text) {
                         case "➕Добавить транзакцию" -> adminBotService.addTransactionHandler(chatId, bot);
@@ -68,8 +77,10 @@ public class HandlerService {
                         case "\uD83D\uDCC8Управление категориями услуг" ->
                                 adminBotService.categoryControlHandler(chatId, bot);
                         case "\uD83D\uDCD1Отчеты" -> adminBotService.reportControlHandler(chatId, bot);
-                        case "Доход","Расход","Перемещение"->adminBotService.transactionListByType(chatId,text,bot);
-                        case "\uD83D\uDCB3Баланс"->adminBotService.viewBalanceHandler(chatId,bot);
+                        case "Доход", "Расход", "Перемещение" ->
+                                adminBotService.transactionListByType(chatId, text, bot);
+                        case "\uD83D\uDCB3Баланс" -> adminBotService.viewBalanceHandler(chatId, bot);
+                        case "⚙️Настройки и доступы" -> adminBotService.settingsHandler(chatId, bot);
                     }
                 }
                 case ADD_TRANSACTION -> {
@@ -109,19 +120,27 @@ public class HandlerService {
                 case ADDITIONAL_REPORT -> {
                     switch (text) {
                         case "Назад\uD83D\uDD19" -> adminBotService.reportControlHandler(chatId, bot);
-                        case "Типу транзакции" -> adminBotService.additionalReportByTransactionType(chatId,bot);
-                        case "Типу денег" -> adminBotService.additionalReportByMoneyType(chatId,bot);
-                        case "Периоду" -> adminBotService.additionalReportByPeriod(chatId,bot);
+                        case "Типу транзакции" -> adminBotService.additionalReportByTransactionType(chatId, bot);
+                        case "Типу денег" -> adminBotService.additionalReportByMoneyType(chatId, bot);
+                        case "Периоду" -> adminBotService.additionalReportByPeriod(chatId, bot);
                     }
                 }
-                case ADDITIONAL_REPORT_BY_TRANSACTION_TYPE->{
-                    switch (text){
+                case ADDITIONAL_REPORT_BY_TRANSACTION_TYPE -> {
+                    switch (text) {
                         case "Назад\uD83D\uDD19" -> adminBotService.additionalReport(chatId, bot);
-                        case "Доход","Расход","Перемещение"->adminBotService.additionalReportListByTransactionType(chatId,text,bot);
+                        case "Доход", "Расход", "Перемещение" ->
+                                adminBotService.additionalReportListByTransactionType(chatId, text, bot);
+                    }
+                }
+                case SETTING -> {
+                    switch (text) {
+                        case "Пользователи" -> adminBotService.controlUsersHandler(chatId, bot);
+                        case "Просмотр текущих доступов" -> adminBotService.currentAccessRight(chatId, bot);
+                        case "Изменение пароля" -> adminBotService.editPasswordHandler(chatId, bot);
+                        case "Назад\uD83D\uDD19" -> adminBotService.baseMenuForBackHandler(chatId, bot);
                     }
                 }
             }
-
         }
         if (message.hasDocument()) {
             Document document = message.getDocument();
@@ -314,13 +333,38 @@ public class HandlerService {
                     adminBotService.expenseTransactionListFilterByCategoryHandler(chatId, data, bot);
                 }
             }
-            case ADDITIONAL_REPORT_BY_MONEY_TYPE->{
-                if (data.equals("back")){
+            case ADDITIONAL_REPORT_BY_MONEY_TYPE -> {
+                if (data.equals("back")) {
                     adminBotService.additionalReport(chatId, bot);
-                }else {
-                    adminBotService.showAdditionalReportByMoneyType(chatId,data,bot);
+                } else {
+                    adminBotService.showAdditionalReportByMoneyType(chatId, data, bot);
                 }
             }
+            case USER_LIST -> {
+                switch (data) {
+                    case "back" -> adminBotService.settingsHandler(chatId, bot);
+                    case "other" -> adminBotService.addUserHandler(chatId, bot);
+                    default -> adminBotService.showUserNameFormHandler(chatId, data, bot);
+                }
+            }
+            case USER_ROLE -> adminBotService.userRoleStateHandler(chatId, data, bot);
+            case USER_SHOW -> {
+                switch (data) {
+                    case "back" -> adminBotService.controlUsersHandler(chatId, bot);
+                    case "edit" -> adminBotService.showUserFormHandler(chatId, bot);
+                    case "delete" -> adminBotService.deleteUserHandler(chatId, bot);
+                }
+            }
+            case EDIT_USER -> {
+                switch (data) {
+                    case "back" ->
+                            adminBotService.showUserNameFormHandler(chatId, Sessions.getUser(chatId).getId().toString(), bot);
+                    case "name" -> adminBotService.requestUserEditNameHandler(chatId,bot);
+                    case "role" -> adminBotService.requestUserEditRoleHandler(chatId,bot);
+                    case "chat_id" -> adminBotService.requestUserEditChatIdHandler(chatId,bot);
+                }
+            }
+            case USER_ROLE_EDIT->adminBotService.updateUserRoleHandler(chatId,data,bot);
         }
     }
 }

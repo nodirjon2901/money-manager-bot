@@ -16,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import uz.result.moneymanagerbot.model.*;
+import uz.result.moneymanagerbot.model.User;
 import uz.result.moneymanagerbot.service.*;
 
 import java.io.*;
@@ -1694,5 +1695,200 @@ public class AdminBotService {
 
     public void viewBalanceHandler(Long chatId, TelegramWebhookBot bot) {
 
+    }
+
+    @SneakyThrows
+    public void settingsHandler(Long chatId, TelegramWebhookBot bot) {
+        UserRole role = userService.findRoleByChatId(chatId);
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Настройки");
+        sendMessage.setReplyMarkup(markupService.settingsFormReplyMarkup(role));
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.SETTING);
+    }
+
+    @SneakyThrows
+    public void currentAccessRight(Long chatId, TelegramWebhookBot bot) {
+        UserRole role = userService.findRoleByChatId(chatId);
+        String text = "";
+        if (role.equals(UserRole.SUPPER_ADMIN)) {
+            text = "В вашей учётной записи имеется роль SUPER_ADMIN. Ваши права доступа к боту не ограничены.";
+        }
+        if (role.equals(UserRole.ADMIN)) {
+            text = """
+                    В вашей учётной записи имеется роль ADMIN. У вас есть право использовать все функции бота, \s
+                    за исключением управления пользователями бота (это право принадлежит только SUPER_ADMIN).
+                    """;
+        }
+        if (role.equals(UserRole.OBSERVER)) {
+            text = "В вашей учётной записи имеется роль OBSERVER. Вы можете просматривать данные в боте, но не можете их изменять.";
+        }
+        SendMessage sendMessage = new SendMessage(chatId.toString(), text);
+        bot.execute(sendMessage);
+    }
+
+    @SneakyThrows
+    public void editPasswordHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите текущий пароль.");
+        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.CURRENT_PASSWORD);
+    }
+
+    @SneakyThrows
+    public void requestCurrentPassword(Long chatId, String password, Integer messageId, TelegramWebhookBot bot) {
+        if (!userService.findByChatId(chatId).getPassword().equals(password)) {
+            warningMessageForWrongPassword(chatId, messageId, bot);
+            return;
+        }
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите новый пароль: ");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.NEW_PASSWORD);
+    }
+
+    @SneakyThrows
+    public void requestNewPassword(Long chatId, String password, Integer messageId, TelegramWebhookBot bot) {
+        userService.updateUserPasswordById(password, chatId);
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Пароль успешно изменён.✅");
+        sendMessage.setReplyToMessageId(messageId);
+        bot.execute(sendMessage);
+        settingsHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void controlUsersHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Список пользователей.");
+        sendMessage.setReplyMarkup(markupService.userListInlineMarkup(userService.findAllExpectSuperAdmin()));
+        trickMessageForUserList(chatId, bot);
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.USER_LIST);
+        Sessions.removeUser(chatId);
+    }
+
+    @SneakyThrows
+    private void trickMessageForUserList(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Вы можете добавить нового пользователя или отредактировать существующих.");
+        sendMessage.setReplyMarkup(markupService.removeReplyMarkup());
+        bot.execute(sendMessage);
+    }
+
+    @SneakyThrows
+    public void addUserHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите имя нового пользователя: ");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.NEW_USER_NAME);
+    }
+
+    @SneakyThrows
+    public void newUserNameStateHandler(Long chatId, String name, TelegramWebhookBot bot) {
+        User user = Sessions.getUser(chatId);
+        user.setName(name);
+        Sessions.updateUser(chatId, user);
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите chatId нового пользователя: ");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.NEW_USER_CHAT_ID);
+    }
+
+    @SneakyThrows
+    public void newUserChatIdStateHandler(Long chatId, String userChatId, Integer messageId, TelegramWebhookBot bot) {
+        if (!validationService.isValidLong(userChatId)) {
+            warningMessageForWrongChatId(chatId, messageId, bot);
+            return;
+        }
+        User user = Sessions.getUser(chatId);
+        user.setChatId(Long.valueOf(userChatId));
+        Sessions.updateUser(chatId, user);
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Выберите роль пользователя: ");
+        sendMessage.setReplyMarkup(markupService.roleInlineMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.USER_ROLE);
+    }
+
+    @SneakyThrows
+    private void warningMessageForWrongChatId(Long chatId, Integer messageId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Пожалуйста, введите правильный chat ID (например: 1234567890).");
+        sendMessage.setReplyToMessageId(messageId);
+        bot.execute(sendMessage);
+    }
+
+    @SneakyThrows
+    public void userRoleStateHandler(Long chatId, String role, TelegramWebhookBot bot) {
+        User user = Sessions.getUser(chatId);
+        user.setRole(UserRole.valueOf(role));
+        userService.save(user);
+        Sessions.removeUser(chatId);
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Пользователь успешно сохранён.✅");
+        bot.execute(sendMessage);
+        controlUsersHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void showUserNameFormHandler(Long chatId, String userId, TelegramWebhookBot bot) {
+        User user = userService.findById(Integer.valueOf(userId));
+        SendMessage sendMessage = new SendMessage(chatId.toString(), user.getName());
+        sendMessage.setReplyMarkup(markupService.selectedCategoryInlineMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.USER_SHOW);
+        Sessions.updateUser(chatId, user);
+    }
+    @SneakyThrows
+    public void showUserFormHandler(Long chatId, TelegramWebhookBot bot) {
+        User user = userService.findById(Sessions.getUser(chatId).getId());
+        String text = "*User*\n\n" +
+                "*Name: *" + user.getName() + "\n" +
+                "*Role: *" + user.getRole() + "\n" +
+                "*ChatId: *" + user.getChatId() + "\n\n";
+        SendMessage sendMessage = new SendMessage(chatId.toString(), text);
+        sendMessage.setParseMode("Markdown");
+        sendMessage.setReplyMarkup(markupService.userEditFormInlineMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.EDIT_USER);
+    }
+
+    @SneakyThrows
+    public void deleteUserHandler(Long chatId, TelegramWebhookBot bot) {
+        userService.delete(Sessions.getUser(chatId).getId());
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Пользователь успешно удалён.");
+        bot.execute(sendMessage);
+    }
+
+    @SneakyThrows
+    public void requestUserEditNameHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage=new SendMessage(chatId.toString(),"Введите новое имя пользователя:: ");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId,UserState.USER_EDIT_NAME);
+    }
+
+    public void requestUserEditNameStateHandler(Long chatId, String text, TelegramWebhookBot bot) {
+        userService.updateUserNameById(text,Sessions.getUser(chatId).getId());
+        showUserFormHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void requestUserEditRoleHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage=new SendMessage(chatId.toString(),"Выберите роль пользователя:");
+        sendMessage.setReplyMarkup(markupService.roleInlineMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId,UserState.USER_ROLE_EDIT);
+    }
+
+    public void updateUserRoleHandler(Long chatId, String data, TelegramWebhookBot bot) {
+        userService.updateUserRoleById(data,Sessions.getUser(chatId).getId());
+        showUserFormHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void requestUserEditChatIdHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage=new SendMessage(chatId.toString(),"Введите chatId пользователя:");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId,UserState.USER_CHAT_ID_EDIT);
+    }
+
+    public void userChatIdEditHandler(Long chatId, String chatIdByUser, Integer messageId, TelegramWebhookBot bot) {
+        if (!validationService.isValidLong(chatIdByUser)) {
+            warningMessageForWrongChatId(chatId, messageId, bot);
+            return;
+        }
+        userService.updateUserChatIdById(Long.valueOf(chatIdByUser),Sessions.getUser(chatId).getId());
+        showUserFormHandler(chatId, bot);
     }
 }

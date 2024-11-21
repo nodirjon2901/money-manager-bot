@@ -19,6 +19,8 @@ public class User {
 
     Long chatId;
 
+    String name;
+
     String password;
 
     @Enumerated(EnumType.STRING)

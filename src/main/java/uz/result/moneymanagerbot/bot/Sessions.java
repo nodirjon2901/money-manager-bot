@@ -1,5 +1,7 @@
 package uz.result.moneymanagerbot.bot;
 
+import uz.result.moneymanagerbot.model.User;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Sessions {
@@ -11,6 +13,8 @@ public class Sessions {
     private static final ConcurrentHashMap<Long, Integer> serviceIds = new ConcurrentHashMap<>();
 
     private static final ConcurrentHashMap<Long, Integer> categoryIds = new ConcurrentHashMap<>();
+
+    private static final ConcurrentHashMap<Long, User> users = new ConcurrentHashMap<>();
 
     public static void addTransactionId(Long chatId, Long transactionId) {
         transactionIds.put(chatId, transactionId);
@@ -58,6 +62,18 @@ public class Sessions {
 
     public static void removeCategoryId(Long chatId) {
         categoryIds.remove(chatId);
+    }
+
+    public static void updateUser(Long chatId, User user) {
+        users.put(chatId, user);
+    }
+
+    public static User getUser(Long chatId) {
+        return users.getOrDefault(chatId, new User());
+    }
+
+    public static void removeUser(Long chatId) {
+        users.remove(chatId);
     }
 
     public static void clearSessions() {

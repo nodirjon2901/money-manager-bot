@@ -40,5 +40,14 @@ public class ValidationService {
         }
     }
 
+    public boolean isValidLong(String input) {
+        try {
+            Long.parseLong(input);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
 
 }

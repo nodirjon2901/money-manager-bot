@@ -52,7 +52,7 @@ public class MoneyManagerBot extends TelegramWebhookBot {
             Long chatId = message.getChatId();
             UserRole currentUserRole = userService.findRoleByChatId(chatId);
 
-            if (currentUserRole.equals(UserRole.ADMIN)) {
+            if (currentUserRole.equals(UserRole.SUPPER_ADMIN)||currentUserRole.equals(UserRole.ADMIN)) {
                 handlerService.handleAdminRole(chatId, message, this);
             } else if (currentUserRole.equals(UserRole.OBSERVER)) {
                 handlerService.handleUserRole(chatId, message, this);
@@ -64,7 +64,7 @@ public class MoneyManagerBot extends TelegramWebhookBot {
             String data = callbackQuery.getData();
             UserRole currentUserRole = userService.findRoleByChatId(chatId);
 
-            if (currentUserRole.equals(UserRole.ADMIN)) {
+            if (currentUserRole.equals(UserRole.SUPPER_ADMIN)||currentUserRole.equals(UserRole.ADMIN)) {
                 handlerService.handleAdminCallbackQuery(chatId, data, callbackQuery, this);
             } else if (currentUserRole.equals(UserRole.OBSERVER)) {
                 handlerService.handleUserCallbackQuery(chatId, data, callbackQuery, this);
