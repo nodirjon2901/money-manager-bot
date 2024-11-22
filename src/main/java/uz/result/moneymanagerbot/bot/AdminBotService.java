@@ -124,7 +124,27 @@ public class AdminBotService {
         }
 
         Integer confirmMessageId = bot.execute(sendMessage).getMessageId();
+        userService.signIn(chatId);
         baseMenuHandler(chatId, confirmMessageId, bot);
+    }
+
+//    @SneakyThrows
+//    private void baseMenuHandler(Long chatId, Integer messageId, TelegramWebhookBot bot) {
+//        SendMessage sendMessage = new SendMessage(chatId.toString(), "*\uD83D\uDEE1 Вы можете полностью воспользоваться возможностями администратора*");
+//        sendMessage.setParseMode("Markdown");
+//        sendMessage.setReplyToMessageId(messageId);
+//        sendMessage.setReplyMarkup(markupService.baseMenuReplyMarkupService());
+//        bot.execute(sendMessage);
+//        userService.updateStateByChatId(chatId, UserState.BASE_MENU);
+//    }
+
+    @SneakyThrows
+    public void menuHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "*\uD83D\uDEE1 Вы можете полностью использовать возможности администратора*");
+        sendMessage.setParseMode("Markdown");
+        sendMessage.setReplyMarkup(markupService.baseMenuReplyMarkupService());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.BASE_MENU);
     }
 
     @SneakyThrows
@@ -132,9 +152,27 @@ public class AdminBotService {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "*\uD83D\uDEE1 Вы можете полностью воспользоваться возможностями администратора*");
         sendMessage.setParseMode("Markdown");
         sendMessage.setReplyToMessageId(messageId);
+        sendMessage.setReplyMarkup(markupService.transactionTypeReplyMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.ADD_TRANSACTION);
+    }
+
+    @SneakyThrows
+    public void baseMenuForBackHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "*\uD83D\uDEE1 Вы можете полностью использовать возможности администратора*");
+        sendMessage.setParseMode("Markdown");
         sendMessage.setReplyMarkup(markupService.baseMenuReplyMarkupService());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.BASE_MENU);
+    }
+
+    @SneakyThrows
+    public void fromMenuToBaseMenuHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "*\uD83D\uDEE1 Вы можете полностью использовать возможности администратора*");
+        sendMessage.setParseMode("Markdown");
+        sendMessage.setReplyMarkup(markupService.transactionTypeReplyMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.ADD_TRANSACTION);
     }
 
     @SneakyThrows
@@ -153,15 +191,6 @@ public class AdminBotService {
         sendMessage.setReplyMarkup(markupService.transactionTypeReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADD_TRANSACTION);
-    }
-
-    @SneakyThrows
-    public void baseMenuForBackHandler(Long chatId, TelegramWebhookBot bot) {
-        SendMessage sendMessage = new SendMessage(chatId.toString(), "*\uD83D\uDEE1 Вы можете полностью использовать возможности администратора*");
-        sendMessage.setParseMode("Markdown");
-        sendMessage.setReplyMarkup(markupService.baseMenuReplyMarkupService());
-        bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId, UserState.BASE_MENU);
     }
 
     @SneakyThrows
@@ -469,7 +498,8 @@ public class AdminBotService {
     public void transactionConfirmHandler(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Транзакция успешно сохранена");
         bot.execute(sendMessage);
-        baseMenuForBackHandler(chatId, bot);
+//        baseMenuForBackHandler(chatId, bot);
+        fromMenuToBaseMenuHandler(chatId, bot);
         Sessions.removeTransactionId(chatId);
     }
 
@@ -1830,6 +1860,7 @@ public class AdminBotService {
         userService.updateStateByChatId(chatId, UserState.USER_SHOW);
         Sessions.updateUser(chatId, user);
     }
+
     @SneakyThrows
     public void showUserFormHandler(Long chatId, TelegramWebhookBot bot) {
         User user = userService.findById(Sessions.getUser(chatId).getId());
@@ -1853,34 +1884,34 @@ public class AdminBotService {
 
     @SneakyThrows
     public void requestUserEditNameHandler(Long chatId, TelegramWebhookBot bot) {
-        SendMessage sendMessage=new SendMessage(chatId.toString(),"Введите новое имя пользователя:: ");
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите новое имя пользователя:: ");
         bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId,UserState.USER_EDIT_NAME);
+        userService.updateStateByChatId(chatId, UserState.USER_EDIT_NAME);
     }
 
     public void requestUserEditNameStateHandler(Long chatId, String text, TelegramWebhookBot bot) {
-        userService.updateUserNameById(text,Sessions.getUser(chatId).getId());
+        userService.updateUserNameById(text, Sessions.getUser(chatId).getId());
         showUserFormHandler(chatId, bot);
     }
 
     @SneakyThrows
     public void requestUserEditRoleHandler(Long chatId, TelegramWebhookBot bot) {
-        SendMessage sendMessage=new SendMessage(chatId.toString(),"Выберите роль пользователя:");
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Выберите роль пользователя:");
         sendMessage.setReplyMarkup(markupService.roleInlineMarkup());
         bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId,UserState.USER_ROLE_EDIT);
+        userService.updateStateByChatId(chatId, UserState.USER_ROLE_EDIT);
     }
 
     public void updateUserRoleHandler(Long chatId, String data, TelegramWebhookBot bot) {
-        userService.updateUserRoleById(data,Sessions.getUser(chatId).getId());
+        userService.updateUserRoleById(data, Sessions.getUser(chatId).getId());
         showUserFormHandler(chatId, bot);
     }
 
     @SneakyThrows
     public void requestUserEditChatIdHandler(Long chatId, TelegramWebhookBot bot) {
-        SendMessage sendMessage=new SendMessage(chatId.toString(),"Введите chatId пользователя:");
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите chatId пользователя:");
         bot.execute(sendMessage);
-        userService.updateStateByChatId(chatId,UserState.USER_CHAT_ID_EDIT);
+        userService.updateStateByChatId(chatId, UserState.USER_CHAT_ID_EDIT);
     }
 
     public void userChatIdEditHandler(Long chatId, String chatIdByUser, Integer messageId, TelegramWebhookBot bot) {
@@ -1888,7 +1919,31 @@ public class AdminBotService {
             warningMessageForWrongChatId(chatId, messageId, bot);
             return;
         }
-        userService.updateUserChatIdById(Long.valueOf(chatIdByUser),Sessions.getUser(chatId).getId());
+        userService.updateUserChatIdById(Long.valueOf(chatIdByUser), Sessions.getUser(chatId).getId());
         showUserFormHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void balanceViewHandler(Long chatId, TelegramWebhookBot bot) {
+        List<Transaction> transactionList = transactionService.findAll();
+        double income = 0;
+        double expense = 0;
+
+        for (Transaction transaction : transactionList) {
+            if (transaction.getTransactionType() != null && transaction.getSumma() != null) {
+                if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
+                    income += transaction.getSumma();
+                }
+                if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
+                    expense += transaction.getSumma();
+                }
+            }
+        }
+
+        String text="*Общая сумма дохода: * "+income+"\n\n" +
+                "*Общая сумма расходов: *"+expense+"\n\n";
+        SendMessage sendMessage = new SendMessage(chatId.toString(), text);
+        sendMessage.setParseMode("Markdown");
+        bot.execute(sendMessage);
     }
 }

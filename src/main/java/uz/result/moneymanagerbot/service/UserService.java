@@ -71,4 +71,13 @@ public class UserService {
         userRepository.updateUserRoleById(role, id);
     }
 
+    public void signIn(Long chatId) {
+        User user = userRepository.findByChatId(chatId).orElseThrow(() -> new NotFoundException("User is not found with chatId: " + chatId));
+        user.setSignIn(true);
+        userRepository.save(user);
+    }
+
+    public boolean checkUserForSignIn(Long chatId) {
+        return userRepository.findByChatId(chatId).orElseThrow(() -> new NotFoundException("User is not found with chatId: " + chatId)).isSignIn();
+    }
 }

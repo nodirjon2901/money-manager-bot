@@ -29,4 +29,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     UserRole role;
 
+    boolean signIn;
+
 }

@@ -17,17 +17,96 @@ import java.util.List;
 public class MarkupService {
 
 
+//    public ReplyKeyboard baseMenuReplyMarkupService() {
+//        ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
+//        replyKeyboard.setResizeKeyboard(true);
+//        List<KeyboardRow> rows = new ArrayList<>();
+//
+//        KeyboardRow row = new KeyboardRow();
+//        KeyboardButton b1 = new KeyboardButton("➕Добавить транзакцию");
+//        row.add(b1);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton b2 = new KeyboardButton("\uD83D\uDC65Управление клиентами");
+//        row.add(b2);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton b3 = new KeyboardButton("\uD83D\uDCC8Управление категориями услуг");
+//        row.add(b3);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton b31 = new KeyboardButton("\uD83C\uDFB0Управление видами услуг");
+//        row.add(b31);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton b4 = new KeyboardButton("\uD83D\uDCD1Отчеты");
+//        row.add(b4);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton a1 = new KeyboardButton("Доход");
+//        row.add(a1);
+//
+//        KeyboardButton a2 = new KeyboardButton("Расход");
+//        row.add(a2);
+//
+//        KeyboardButton a3 = new KeyboardButton("Перемещение");
+//        row.add(a3);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton balance = new KeyboardButton("\uD83D\uDCB3Баланс");
+//        row.add(balance);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton b5 = new KeyboardButton("⚙️Настройки и доступы");
+//        row.add(b5);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton b6 = new KeyboardButton("✍️Уведомления");
+//        row.add(b6);
+//        rows.add(row);
+//
+//        replyKeyboard.setKeyboard(rows);
+//        return replyKeyboard;
+//    }
+
+//    public ReplyKeyboard transactionTypeReplyMarkup() {
+//        ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
+//        replyKeyboard.setResizeKeyboard(true);
+//        List<KeyboardRow> rows = new ArrayList<>();
+//
+//        KeyboardRow row = new KeyboardRow();
+//        KeyboardButton b1 = new KeyboardButton("Доход");
+//        row.add(b1);
+//
+//        KeyboardButton b2 = new KeyboardButton("Расход");
+//        row.add(b2);
+//
+//        KeyboardButton b3 = new KeyboardButton("Перемещение");
+//        row.add(b3);
+//        rows.add(row);
+//
+//        row = new KeyboardRow();
+//        KeyboardButton back = new KeyboardButton("Назад\uD83D\uDD19");
+//        row.add(back);
+//        rows.add(row);
+//        replyKeyboard.setKeyboard(rows);
+//        return replyKeyboard;
+//    }
+
     public ReplyKeyboard baseMenuReplyMarkupService() {
         ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
         replyKeyboard.setResizeKeyboard(true);
         List<KeyboardRow> rows = new ArrayList<>();
 
         KeyboardRow row = new KeyboardRow();
-        KeyboardButton b1 = new KeyboardButton("➕Добавить транзакцию");
-        row.add(b1);
-        rows.add(row);
-
-        row = new KeyboardRow();
         KeyboardButton b2 = new KeyboardButton("\uD83D\uDC65Управление клиентами");
         row.add(b2);
         rows.add(row);
@@ -48,22 +127,6 @@ public class MarkupService {
         rows.add(row);
 
         row = new KeyboardRow();
-        KeyboardButton a1 = new KeyboardButton("Доход");
-        row.add(a1);
-
-        KeyboardButton a2 = new KeyboardButton("Расход");
-        row.add(a2);
-
-        KeyboardButton a3 = new KeyboardButton("Перемещение");
-        row.add(a3);
-        rows.add(row);
-
-        row = new KeyboardRow();
-        KeyboardButton balance = new KeyboardButton("\uD83D\uDCB3Баланс");
-        row.add(balance);
-        rows.add(row);
-
-        row = new KeyboardRow();
         KeyboardButton b5 = new KeyboardButton("⚙️Настройки и доступы");
         row.add(b5);
         rows.add(row);
@@ -73,10 +136,14 @@ public class MarkupService {
         row.add(b6);
         rows.add(row);
 
+        row = new KeyboardRow();
+        KeyboardButton b7 = new KeyboardButton("Назад\uD83D\uDD19");
+        row.add(b7);
+        rows.add(row);
+
         replyKeyboard.setKeyboard(rows);
         return replyKeyboard;
     }
-
     public ReplyKeyboard transactionTypeReplyMarkup() {
         ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
         replyKeyboard.setResizeKeyboard(true);
@@ -94,7 +161,10 @@ public class MarkupService {
         rows.add(row);
 
         row = new KeyboardRow();
-        KeyboardButton back = new KeyboardButton("Назад\uD83D\uDD19");
+        KeyboardButton balance = new KeyboardButton("\uD83D\uDCB3Баланс");
+        row.add(balance);
+
+        KeyboardButton back = new KeyboardButton("Меню");
         row.add(back);
         rows.add(row);
         replyKeyboard.setKeyboard(rows);

@@ -34,7 +34,12 @@ public class HandlerService {
             String text = message.getText();
             if (text.equals("/start")) {
                 if (!currentState.equals(UserState.DEFAULT)) {
-                    userService.updateStateByChatId(chatId, UserState.START);
+                    if (userService.checkUserForSignIn(chatId)) {
+                        userService.updateStateByChatId(chatId, UserState.ADD_TRANSACTION);
+                        adminBotService.fromMenuToBaseMenuHandler(chatId,bot);
+                    } else {
+                        userService.updateStateByChatId(chatId, UserState.START);
+                    }
                     Sessions.clearSessions();
                     currentState = userService.findStateByChatId(chatId);
                 }
@@ -66,8 +71,9 @@ public class HandlerService {
                 case NEW_USER_NAME -> adminBotService.newUserNameStateHandler(chatId, text, bot);
                 case NEW_USER_CHAT_ID ->
                         adminBotService.newUserChatIdStateHandler(chatId, text, message.getMessageId(), bot);
-                case USER_EDIT_NAME->adminBotService.requestUserEditNameStateHandler(chatId,text,bot);
-                case USER_CHAT_ID_EDIT->adminBotService.userChatIdEditHandler(chatId,text,message.getMessageId(),bot);
+                case USER_EDIT_NAME -> adminBotService.requestUserEditNameStateHandler(chatId, text, bot);
+                case USER_CHAT_ID_EDIT ->
+                        adminBotService.userChatIdEditHandler(chatId, text, message.getMessageId(), bot);
                 case BASE_MENU -> {
                     switch (text) {
                         case "➕Добавить транзакцию" -> adminBotService.addTransactionHandler(chatId, bot);
@@ -81,13 +87,16 @@ public class HandlerService {
                                 adminBotService.transactionListByType(chatId, text, bot);
                         case "\uD83D\uDCB3Баланс" -> adminBotService.viewBalanceHandler(chatId, bot);
                         case "⚙️Настройки и доступы" -> adminBotService.settingsHandler(chatId, bot);
+                        case "Назад\uD83D\uDD19" -> adminBotService.fromMenuToBaseMenuHandler(chatId, bot);
                     }
                 }
                 case ADD_TRANSACTION -> {
                     switch (text) {
                         case "Доход", "Расход", "Перемещение" ->
                                 adminBotService.incomeMessageHandler(chatId, text, bot);
-                        case "Назад\uD83D\uDD19" -> adminBotService.baseMenuForBackHandler(chatId, bot);
+//                        case "Назад\uD83D\uDD19" -> adminBotService.baseMenuForBackHandler(chatId, bot);
+                        case "Меню" -> adminBotService.menuHandler(chatId, bot);
+                        case "\uD83D\uDCB3Баланс"->adminBotService.balanceViewHandler(chatId,bot);
                     }
                 }
                 case REPORT_FORM -> {
@@ -359,12 +368,12 @@ public class HandlerService {
                 switch (data) {
                     case "back" ->
                             adminBotService.showUserNameFormHandler(chatId, Sessions.getUser(chatId).getId().toString(), bot);
-                    case "name" -> adminBotService.requestUserEditNameHandler(chatId,bot);
-                    case "role" -> adminBotService.requestUserEditRoleHandler(chatId,bot);
-                    case "chat_id" -> adminBotService.requestUserEditChatIdHandler(chatId,bot);
+                    case "name" -> adminBotService.requestUserEditNameHandler(chatId, bot);
+                    case "role" -> adminBotService.requestUserEditRoleHandler(chatId, bot);
+                    case "chat_id" -> adminBotService.requestUserEditChatIdHandler(chatId, bot);
                 }
             }
-            case USER_ROLE_EDIT->adminBotService.updateUserRoleHandler(chatId,data,bot);
+            case USER_ROLE_EDIT -> adminBotService.updateUserRoleHandler(chatId, data, bot);
         }
     }
 }
