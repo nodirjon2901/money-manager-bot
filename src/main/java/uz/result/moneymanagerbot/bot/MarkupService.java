@@ -42,12 +42,12 @@ public class MarkupService {
         KeyboardButton b4 = new KeyboardButton("\uD83D\uDCC8Категория услуги");
         row.add(b4);
 
-        KeyboardButton b5 = new KeyboardButton("✍️Уведомления");
+        KeyboardButton b5 = new KeyboardButton("⚙️Настройки и доступы");
         row.add(b5);
         rows.add(row);
 
         row = new KeyboardRow();
-        KeyboardButton b6 = new KeyboardButton("⚙️Настройки и доступы");
+        KeyboardButton b6 = new KeyboardButton("✍️Уведомления");
         row.add(b6);
 
         KeyboardButton b7 = new KeyboardButton("Назад\uD83D\uDD19");
