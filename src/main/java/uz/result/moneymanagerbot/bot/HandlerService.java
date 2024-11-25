@@ -74,6 +74,9 @@ public class HandlerService {
                 case USER_EDIT_NAME -> adminBotService.requestUserEditNameStateHandler(chatId, text, bot);
                 case USER_CHAT_ID_EDIT ->
                         adminBotService.userChatIdEditHandler(chatId, text, message.getMessageId(), bot);
+                case NOTIFICATION_DATE->adminBotService.notificationDateStateHandler(chatId,text,message.getMessageId(),bot);
+                case NOTIFICATION_MESSAGE->adminBotService.notificationMessageStateHandle(chatId,text,bot);
+                case NOTIFICATION_SUMMA->adminBotService.notificationSummaStateHandler(chatId,text,message.getMessageId(),bot);
                 case BASE_MENU -> {
                     switch (text) {
                         case "➕Добавить транзакцию" -> adminBotService.addTransactionHandler(chatId, bot);
@@ -87,6 +90,7 @@ public class HandlerService {
                                 adminBotService.transactionListByType(chatId, text, bot);
                         case "\uD83D\uDCB3Баланс" -> adminBotService.viewBalanceHandler(chatId, bot);
                         case "⚙️Настройки и доступы" -> adminBotService.settingsHandler(chatId, bot);
+                        case "✍️Уведомления"->adminBotService.notificationHandler(chatId,bot);
                         case "Назад\uD83D\uDD19" -> adminBotService.fromMenuToBaseMenuHandler(chatId, bot);
                     }
                 }
@@ -374,6 +378,21 @@ public class HandlerService {
                 }
             }
             case USER_ROLE_EDIT -> adminBotService.updateUserRoleHandler(chatId, data, bot);
+            case NOTIFICATION_LIST -> {
+                switch (data) {
+                    case "back" -> adminBotService.baseMenuForBackHandler(chatId, bot);
+                    case "other" -> adminBotService.addNotificationHandler(chatId, bot);
+                    default -> adminBotService.notificationControlHandler(chatId, data, bot);
+                }
+            }
+            case NOTIFICATION_TYPE->adminBotService.notificationTypeStateHandler(chatId,data,bot);
+            case NOTIFICATION_REPEAT_TIME->adminBotService.notificationRepeatTime(chatId,data,bot);
+            case NOTIFICATION_CONTROL->{
+                switch (data){
+                    case "back"->adminBotService.notificationHandler(chatId,bot);
+                    case "delete"->adminBotService.deleteNotificationHandler(chatId,bot);
+                }
+            }
         }
     }
 }

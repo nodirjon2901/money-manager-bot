@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import uz.result.moneymanagerbot.model.*;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -144,6 +145,7 @@ public class MarkupService {
         replyKeyboard.setKeyboard(rows);
         return replyKeyboard;
     }
+
     public ReplyKeyboard transactionTypeReplyMarkup() {
         ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
         replyKeyboard.setResizeKeyboard(true);
@@ -773,8 +775,7 @@ public class MarkupService {
             KeyboardButton b3 = new KeyboardButton("Изменение пароля");
             row.add(b3);
             rows.add(row);
-        }
-        else {
+        } else {
             KeyboardRow row = new KeyboardRow();
             KeyboardButton b1 = new KeyboardButton("Просмотр текущих доступов");
             row.add(b1);
@@ -865,6 +866,88 @@ public class MarkupService {
         button = new InlineKeyboardButton();
         button.setText("Назад \uD83D\uDD19");
         button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup notificationListInline(List<Notification> notificationList) {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+        for (Notification notification : notificationList) {
+            String text = notification.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            buttonRow = new ArrayList<>();
+            button.setText(text);
+            button.setCallbackData(notification.getId().toString());
+            buttonRow.add(button);
+            rowsInline.add(buttonRow);
+        }
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Другое ➕");
+        button.setCallbackData("other");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup notificationTypeInlineMarkup() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        buttonRow = new ArrayList<>();
+        button.setText("Доход ");
+        button.setCallbackData("INCOME");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Расход");
+        button.setCallbackData("EXPENSE");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
+
+    public InlineKeyboardMarkup notificationSelectTypeInlineMarkup() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText("Одноразово");
+        button.setCallbackData("ONCE");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Раз в неделю");
+        button.setCallbackData("WEEKLY");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        buttonRow = new ArrayList<>();
+        button = new InlineKeyboardButton();
+        button.setText("Раз в месяц");
+        button.setCallbackData("MONTHLY");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Раз в три месяца");
+        button.setCallbackData("QUARTERLY");
         buttonRow.add(button);
         rowsInline.add(buttonRow);
 

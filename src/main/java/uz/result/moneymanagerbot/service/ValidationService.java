@@ -3,6 +3,7 @@ package uz.result.moneymanagerbot.service;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -49,5 +50,17 @@ public class ValidationService {
         }
     }
 
+    public boolean isValidDateTime(String input) {
+        if (input == null || input.isEmpty()) {
+            return false;
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        try {
+            LocalDateTime.parse(input, formatter);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
 
 }
