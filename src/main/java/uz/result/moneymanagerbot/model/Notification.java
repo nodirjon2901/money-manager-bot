@@ -26,10 +26,12 @@ public class Notification {
 
     Double summa;
 
+    @Enumerated(EnumType.STRING)
     TransactionType type;
 
     LocalDateTime time;
 
+    @Enumerated(EnumType.STRING)
     RepeatPeriod repeatInterval;
 
 }

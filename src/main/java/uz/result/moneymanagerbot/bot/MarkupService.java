@@ -954,4 +954,48 @@ public class MarkupService {
         inlineKeyboard.setKeyboard(rowsInline);
         return inlineKeyboard;
     }
+
+    public InlineKeyboardMarkup notificationEditFormInlineMarkup() {
+        InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> buttonRow = new ArrayList<>();
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText("Дата");
+        button.setCallbackData("time");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Текст");
+        button.setCallbackData("text");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        buttonRow = new ArrayList<>();
+        button = new InlineKeyboardButton();
+        button.setText("Сумма транзакции");
+        button.setCallbackData("summa");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Тип транзакции");
+        button.setCallbackData("tran_type");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        buttonRow = new ArrayList<>();
+        button = new InlineKeyboardButton();
+        button.setText("Тип уведомления");
+        button.setCallbackData("notif_type");
+        buttonRow.add(button);
+
+        button = new InlineKeyboardButton();
+        button.setText("Назад \uD83D\uDD19");
+        button.setCallbackData("back");
+        buttonRow.add(button);
+        rowsInline.add(buttonRow);
+
+        inlineKeyboard.setKeyboard(rowsInline);
+        return inlineKeyboard;
+    }
 }

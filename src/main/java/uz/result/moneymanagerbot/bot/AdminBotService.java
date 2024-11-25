@@ -2057,8 +2057,113 @@ public class AdminBotService {
     @SneakyThrows
     public void deleteNotificationHandler(Long chatId, TelegramWebhookBot bot) {
         notificationService.deleteById(Sessions.getNotification(chatId).getId());
-        SendMessage sendMessage=new SendMessage(chatId.toString(),"Уведомление успешно удалено✅");
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Уведомление успешно удалено✅");
         bot.execute(sendMessage);
         notificationHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void notificationEditFormHandler(Long chatId, TelegramWebhookBot bot) {
+        Integer id = Sessions.getNotification(chatId).getId();
+        Notification notification = notificationService.findById(id);
+        String text = "*Уведомление*\n\n" +
+                "*Дата: *" + notification.getTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + "\n" +
+                "*Текст: *" + notification.getMessage() + "\n" +
+                "*Сумма транзакции: *" + notification.getSumma() + "\n" +
+                "*Тип транзакции: *" + showTransactionType(notification.getType()) + "\n" +
+                "*Тип уведомления: *" + showNotificationType(notification.getRepeatInterval()) + "\n";
+        SendMessage sendMessage = new SendMessage(chatId.toString(), text);
+        sendMessage.setParseMode("Markdown");
+        sendMessage.setReplyMarkup(markupService.notificationEditFormInlineMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.EDIT_NOTIFICATION);
+    }
+
+    private String showNotificationType(RepeatPeriod repeatInterval) {
+        if (repeatInterval.equals(RepeatPeriod.MONTHLY))
+            return "Раз в месяц";
+        if (repeatInterval.equals(RepeatPeriod.ONCE))
+            return "Одноразово";
+        if (repeatInterval.equals(RepeatPeriod.WEEKLY))
+            return "Раз в неделю";
+        if (repeatInterval.equals(RepeatPeriod.QUARTERLY))
+            return "Раз в три месяца";
+        return "";
+    }
+
+    @SneakyThrows
+    public void editNotifTimeHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите дату уведомления в формате гггг-ММ-дд ЧЧ:мм (пример: 2024-11-22 15:30).");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.NOTIFICATION_EDIT_DATE);
+    }
+
+    public void notifEditStateHandler(Long chatId, String time, Integer messageId, TelegramWebhookBot bot) {
+        if (!validationService.isValidDateTime(time)) {
+            warningMessageForWrongFormatNotificationTime(chatId, messageId, bot);
+            return;
+        }
+        LocalDateTime dateTime = LocalDateTime.parse(time, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        Notification notification = Sessions.getNotification(chatId);
+        notificationService.updateNotificationTimeById(dateTime, notification.getId());
+        notificationEditFormHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void editNotifTextHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите текст уведомления: ");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.EDIT_NOTIFICATION_TEXT);
+    }
+
+    public void notifEditTextStateHandler(Long chatId, String text, TelegramWebhookBot bot) {
+        Integer id = Sessions.getNotification(chatId).getId();
+        notificationService.updateNotificationTextById(id, text);
+        notificationEditFormHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void editNotifSummaHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите сумму транзакции (Только числа): ");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.NOTIFICATION_EDIT_SUMMA);
+    }
+
+    public void notifEditSummaStateHandler(Long chatId, String summa, Integer messageId, TelegramWebhookBot bot) {
+        if (!validationService.isValidDouble(summa)) {
+            warningMessageForPriceHandler(chatId, messageId, bot);
+            return;
+        }
+        Integer id = Sessions.getNotification(chatId).getId();
+        notificationService.updateNotificationSummaById(id, Double.valueOf(summa));
+        notificationEditFormHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void editNotifTranEditTypeHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Выберите тип транзакции");
+        sendMessage.setReplyMarkup(markupService.notificationTypeInlineMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.NOTIFICATION_TYPE_EDIT);
+    }
+
+    public void notificationTypeEditStateHandler(Long chatId, String data, TelegramWebhookBot bot) {
+        Integer id = Sessions.getNotification(chatId).getId();
+        notificationService.updateNotificationTransactionTypeById(data, id);
+        notificationEditFormHandler(chatId, bot);
+    }
+
+    @SneakyThrows
+    public void editNotificationTypeHandler(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Выберите тип уведомления: ");
+        sendMessage.setReplyMarkup(markupService.notificationSelectTypeInlineMarkup());
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.NOTIFICATION_REPEAT_TIME_EDIT);
+    }
+
+    public void notificationTimeRepeatEditHandler(Long chatId, String data, TelegramWebhookBot bot) {
+        Integer id = Sessions.getNotification(chatId).getId();
+        notificationService.updateNotificationTimeRepeatById(data,id);
+        notificationEditFormHandler(chatId, bot);
     }
 }
