@@ -28,36 +28,28 @@ public class MarkupService {
         List<KeyboardRow> rows = new ArrayList<>();
 
         KeyboardRow row = new KeyboardRow();
-        KeyboardButton b2 = new KeyboardButton("\uD83D\uDC65Управление клиентами");
+        KeyboardButton b2 = new KeyboardButton("\uD83D\uDC65Клиенты");
         row.add(b2);
-        rows.add(row);
 
-        row = new KeyboardRow();
-        KeyboardButton b3 = new KeyboardButton("\uD83D\uDCC8Управление категориями услуг");
+        KeyboardButton b31 = new KeyboardButton("\uD83C\uDFB0Услуги");
+        row.add(b31);
+
+        KeyboardButton b3 = new KeyboardButton("\uD83D\uDCD1Отчеты");
         row.add(b3);
         rows.add(row);
 
         row = new KeyboardRow();
-        KeyboardButton b31 = new KeyboardButton("\uD83C\uDFB0Управление видами услуг");
-        row.add(b31);
-        rows.add(row);
-
-        row = new KeyboardRow();
-        KeyboardButton b4 = new KeyboardButton("\uD83D\uDCD1Отчеты");
+        KeyboardButton b4 = new KeyboardButton("\uD83D\uDCC8Категория услуги");
         row.add(b4);
-        rows.add(row);
 
-        row = new KeyboardRow();
-        KeyboardButton b5 = new KeyboardButton("⚙️Настройки и доступы");
+        KeyboardButton b5 = new KeyboardButton("✍️Уведомления");
         row.add(b5);
         rows.add(row);
 
         row = new KeyboardRow();
-        KeyboardButton b6 = new KeyboardButton("✍️Уведомления");
+        KeyboardButton b6 = new KeyboardButton("⚙️Настройки и доступы");
         row.add(b6);
-        rows.add(row);
 
-        row = new KeyboardRow();
         KeyboardButton b7 = new KeyboardButton("Назад\uD83D\uDD19");
         row.add(b7);
         rows.add(row);

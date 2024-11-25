@@ -84,11 +84,11 @@ public class HandlerService {
                 case NOTIFICATION_EDIT_SUMMA->adminBotService.notifEditSummaStateHandler(chatId,text, message.getMessageId(), bot);
                 case BASE_MENU -> {
                     switch (text) {
-                        case "➕Добавить транзакцию" -> adminBotService.addTransactionHandler(chatId, bot);
-                        case "\uD83D\uDC65Управление клиентами" -> adminBotService.clientControlHandler(chatId, bot);
-                        case "\uD83C\uDFB0Управление видами услуг" ->
+//                        case "➕Добавить транзакцию" -> adminBotService.addTransactionHandler(chatId, bot);
+                        case "\uD83D\uDC65Клиенты" -> adminBotService.clientControlHandler(chatId, bot);
+                        case "\uD83C\uDFB0Услуги" ->
                                 adminBotService.serviceControlHandler(chatId, bot);
-                        case "\uD83D\uDCC8Управление категориями услуг" ->
+                        case "\uD83D\uDCC8Категория услуги" ->
                                 adminBotService.categoryControlHandler(chatId, bot);
                         case "\uD83D\uDCD1Отчеты" -> adminBotService.reportControlHandler(chatId, bot);
                         case "Доход", "Расход", "Перемещение" ->
