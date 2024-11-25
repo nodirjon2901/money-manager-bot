@@ -6,7 +6,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -62,10 +61,6 @@ public class AdminBotService {
 
     @Value("${photos.files.file.path}")
     private String photoFilePath;
-
-    @Value("${photos.bot.file.path}")
-    private String photoBotPath;
-
 
     @SneakyThrows
     public void defaultStateHandler(Long chatId, String text, Message message, TelegramWebhookBot bot) {
@@ -277,7 +272,7 @@ public class AdminBotService {
         } else if (type.equals(TransactionType.EXPENSE)) {
             expenseTypeHandler(chatId, bot);
         } else if (type.equals(TransactionType.TRANSFER)) {
-            transferMessageHandler(chatId, type.toString(), bot);
+            transferMessageHandler(chatId, bot);
         }
     }
 
@@ -459,7 +454,7 @@ public class AdminBotService {
         return " ";
     }
 
-    public void requestTransactionFileStateHandler(Long chatId, Document document, Integer messageId, TelegramWebhookBot bot) {
+    public void requestTransactionFileStateHandler(Long chatId, Document document, TelegramWebhookBot bot) {
         FileEntity fileEntity = processFileMessage(document, bot);
         transactionService.updateTransactionFileById(Sessions.getTransactionId(chatId), fileEntity);
         transactionFileNoStateHandler(chatId, bot);
@@ -872,7 +867,7 @@ public class AdminBotService {
         bot.execute(answerCallbackQuery);
     }
 
-    public void transferMessageHandler(Long chatId, String transactionType, TelegramWebhookBot bot) {
+    public void transferMessageHandler(Long chatId, TelegramWebhookBot bot) {
         trickMessageForTypeMessage(chatId, bot);
         userService.updateStateByChatId(chatId, UserState.COMMENT_REQUEST);
     }
@@ -1652,71 +1647,6 @@ public class AdminBotService {
         } catch (IOException | TelegramApiException e) {
             e.printStackTrace();
         }
-    }
-
-    public void transactionListByType(Long chatId, String transactionType, TelegramWebhookBot bot) {
-        List<Transaction> transactions = transactionService.findAllTransactionsByTransactionType(Objects.requireNonNull(getTransactionType(transactionType)).toString());
-
-        try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
-
-            Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("Тип транзакции");
-            headerRow.createCell(1).setCellValue("Валюта");
-            headerRow.createCell(2).setCellValue("Сумма транзакции");
-            headerRow.createCell(3).setCellValue("Дата транзакции");
-            headerRow.createCell(4).setCellValue("Категория расхода / Клиент дохода");
-            headerRow.createCell(5).setCellValue("Номер телефона клиента");
-            headerRow.createCell(6).setCellValue("Тип услуги клиента");
-
-            int rowIdx = 1;
-            double summa = 0;
-
-            for (Transaction transaction : transactions) {
-                Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
-                row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
-                row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
-
-                if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
-                    row.createCell(4).setCellValue(transaction.getClient().getFullName());
-                    row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
-                    row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                } else if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
-                    row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
-                }
-
-                summa += transaction.getSumma();
-            }
-
-            Row totalRow = sheet.createRow(rowIdx + 1);
-            Cell totalLabelCell = totalRow.createCell(0);
-            totalLabelCell.setCellValue("Итоговая сумма:");
-
-            CellStyle style = workbook.createCellStyle();
-            style.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.getIndex());
-            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            totalLabelCell.setCellStyle(style);
-
-            Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
-            totalSumCell.setCellStyle(style);
-
-            workbook.write(outputStream);
-
-            InputFile inputFile = new InputFile(new ByteArrayInputStream(outputStream.toByteArray()), "Отчет_о_транзакциях.xlsx");
-            SendDocument sendDocument = new SendDocument();
-            sendDocument.setChatId(chatId.toString());
-            sendDocument.setDocument(inputFile);
-            bot.execute(sendDocument);
-        } catch (IOException | TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void viewBalanceHandler(Long chatId, TelegramWebhookBot bot) {
-
     }
 
     @SneakyThrows

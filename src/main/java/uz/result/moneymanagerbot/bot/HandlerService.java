@@ -84,16 +84,12 @@ public class HandlerService {
                 case NOTIFICATION_EDIT_SUMMA->adminBotService.notifEditSummaStateHandler(chatId,text, message.getMessageId(), bot);
                 case BASE_MENU -> {
                     switch (text) {
-//                        case "➕Добавить транзакцию" -> adminBotService.addTransactionHandler(chatId, bot);
                         case "\uD83D\uDC65Клиенты" -> adminBotService.clientControlHandler(chatId, bot);
                         case "\uD83C\uDFB0Услуги" ->
                                 adminBotService.serviceControlHandler(chatId, bot);
                         case "\uD83D\uDCC8Категория услуги" ->
                                 adminBotService.categoryControlHandler(chatId, bot);
                         case "\uD83D\uDCD1Отчеты" -> adminBotService.reportControlHandler(chatId, bot);
-                        case "Доход", "Расход", "Перемещение" ->
-                                adminBotService.transactionListByType(chatId, text, bot);
-                        case "\uD83D\uDCB3Баланс" -> adminBotService.viewBalanceHandler(chatId, bot);
                         case "⚙️Настройки и доступы" -> adminBotService.settingsHandler(chatId, bot);
                         case "✍️Уведомления" -> adminBotService.notificationHandler(chatId, bot);
                         case "Назад\uD83D\uDD19" -> adminBotService.fromMenuToBaseMenuHandler(chatId, bot);
@@ -162,7 +158,7 @@ public class HandlerService {
         if (message.hasDocument()) {
             Document document = message.getDocument();
             if (currentState.equals(UserState.REQUEST_TRANSACTION_FILE))
-                adminBotService.requestTransactionFileStateHandler(chatId, document, message.getMessageId(), bot);
+                adminBotService.requestTransactionFileStateHandler(chatId, document, bot);
         }
     }
 

@@ -61,8 +61,6 @@ public class NotificationService {
                 .withNano(0);
         List<Notification> notifications = notificationRepository.findByTime(now);
         List<Notification> notificationList = new ArrayList<>();
-        System.out.println(notifications);
-        System.out.println(now);
         for (Notification notification : notifications) {
             notificationList.add(notification);
             if (notification.getRepeatInterval() == RepeatPeriod.ONCE) {
