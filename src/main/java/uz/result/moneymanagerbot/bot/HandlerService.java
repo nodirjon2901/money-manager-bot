@@ -92,6 +92,7 @@ public class HandlerService {
                         case "\uD83D\uDCD1Отчеты" -> adminBotService.reportControlHandler(chatId, bot);
                         case "⚙️Настройки и доступы" -> adminBotService.settingsHandler(chatId, bot);
                         case "✍️Уведомления" -> adminBotService.notificationHandler(chatId, bot);
+                        case "\uD83D\uDD12Log Out"->adminBotService.logOutHandler(chatId,bot);
                         case "Назад\uD83D\uDD19" -> adminBotService.fromMenuToBaseMenuHandler(chatId, bot);
                     }
                 }

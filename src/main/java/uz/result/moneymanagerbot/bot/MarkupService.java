@@ -47,6 +47,9 @@ public class MarkupService {
         rows.add(row);
 
         row = new KeyboardRow();
+        KeyboardButton logOut = new KeyboardButton("\uD83D\uDD12Log Out");
+        row.add(logOut);
+
         KeyboardButton b6 = new KeyboardButton("✍️Уведомления");
         row.add(b6);
 

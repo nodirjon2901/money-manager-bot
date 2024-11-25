@@ -77,6 +77,13 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void logOut(Long chatId){
+        User user = userRepository.findByChatId(chatId).orElseThrow(() -> new NotFoundException("User is not found with chatId: " + chatId));
+        user.setSignIn(false);
+        user.setState(UserState.START);
+        userRepository.save(user);
+    }
+
     public boolean checkUserForSignIn(Long chatId) {
         return userRepository.findByChatId(chatId).orElseThrow(() -> new NotFoundException("User is not found with chatId: " + chatId)).isSignIn();
     }

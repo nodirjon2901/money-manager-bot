@@ -2083,8 +2083,12 @@ public class AdminBotService {
 
     public void notificationTimeRepeatEditHandler(Long chatId, String data, TelegramWebhookBot bot) {
         Integer id = Sessions.getNotification(chatId).getId();
-        notificationService.updateNotificationTimeRepeatById(data,id);
+        notificationService.updateNotificationTimeRepeatById(data, id);
         notificationEditFormHandler(chatId, bot);
     }
 
+    public void logOutHandler(Long chatId, TelegramWebhookBot bot) {
+        userService.logOut(chatId);
+        startStateHandler(chatId, bot);
+    }
 }
