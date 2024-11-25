@@ -10,6 +10,7 @@ import uz.result.moneymanagerbot.model.Notification;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
@@ -39,4 +40,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     @Transactional
     @Query(value = "update notification set repeat_interval=:repeat where id=:id", nativeQuery = true)
     void updateNotificationTimeRepeatById(@Param("repeat") String data, @Param("id") Integer id);
+
+    List<Notification> findByTime(LocalDateTime time);
+
 }

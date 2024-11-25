@@ -14,12 +14,10 @@ public class UtilService {
 
     public String getCurrentExchangeRate() {
         try {
-            // O'zbekiston Markaziy bankining API manzili
             String url = "https://cbu.uz/oz/arkhiv-kursov-valyut/json/";
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod("GET");
 
-            // Javobni o'qish
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String inputLine;
             StringBuilder response = new StringBuilder();
@@ -29,7 +27,6 @@ public class UtilService {
             }
             in.close();
 
-            // JSON natijani pars qilish
             JSONArray jsonResponse = new JSONArray(response.toString());
             for (int i = 0; i < jsonResponse.length(); i++) {
                 JSONObject currency = jsonResponse.getJSONObject(i);

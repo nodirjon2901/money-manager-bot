@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -121,7 +122,6 @@ public class AdminBotService {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "*Подтверждено✅*");
         sendMessage.setParseMode("Markdown");
 
-        // Javob berish uchun messageId mavjudligini tekshirish
         if (messageId != null) {
             sendMessage.setReplyToMessageId(messageId);
         }
@@ -130,16 +130,6 @@ public class AdminBotService {
         userService.signIn(chatId);
         baseMenuHandler(chatId, confirmMessageId, bot);
     }
-
-//    @SneakyThrows
-//    private void baseMenuHandler(Long chatId, Integer messageId, TelegramWebhookBot bot) {
-//        SendMessage sendMessage = new SendMessage(chatId.toString(), "*\uD83D\uDEE1 Вы можете полностью воспользоваться возможностями администратора*");
-//        sendMessage.setParseMode("Markdown");
-//        sendMessage.setReplyToMessageId(messageId);
-//        sendMessage.setReplyMarkup(markupService.baseMenuReplyMarkupService());
-//        bot.execute(sendMessage);
-//        userService.updateStateByChatId(chatId, UserState.BASE_MENU);
-//    }
 
     @SneakyThrows
     public void menuHandler(Long chatId, TelegramWebhookBot bot) {
@@ -459,7 +449,7 @@ public class AdminBotService {
         return " ";
     }
 
-    private String showTransactionType(TransactionType transactionType) {
+    public String showTransactionType(TransactionType transactionType) {
         if (transactionType.equals(TransactionType.INCOME))
             return "Доход";
         if (transactionType.equals(TransactionType.EXPENSE))
@@ -501,7 +491,6 @@ public class AdminBotService {
     public void transactionConfirmHandler(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Транзакция успешно сохранена");
         bot.execute(sendMessage);
-//        baseMenuForBackHandler(chatId, bot);
         fromMenuToBaseMenuHandler(chatId, bot);
         Sessions.removeTransactionId(chatId);
     }
@@ -1984,6 +1973,7 @@ public class AdminBotService {
         LocalDateTime dateTime = LocalDateTime.parse(time, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         Notification notification = Sessions.getNotification(chatId);
         notification.setTime(dateTime);
+        notification.setChatId(chatId);
         Sessions.addNotification(chatId, notification);
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите текст сообщения: ");
         bot.execute(sendMessage);
@@ -2079,7 +2069,7 @@ public class AdminBotService {
         userService.updateStateByChatId(chatId, UserState.EDIT_NOTIFICATION);
     }
 
-    private String showNotificationType(RepeatPeriod repeatInterval) {
+    public String showNotificationType(RepeatPeriod repeatInterval) {
         if (repeatInterval.equals(RepeatPeriod.MONTHLY))
             return "Раз в месяц";
         if (repeatInterval.equals(RepeatPeriod.ONCE))
@@ -2166,4 +2156,5 @@ public class AdminBotService {
         notificationService.updateNotificationTimeRepeatById(data,id);
         notificationEditFormHandler(chatId, bot);
     }
+
 }

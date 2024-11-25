@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import uz.result.moneymanagerbot.model.User;
 import uz.result.moneymanagerbot.model.UserRole;
 import uz.result.moneymanagerbot.repository.UserRepository;
@@ -14,6 +15,7 @@ import uz.result.moneymanagerbot.service.ServiceTypeService;
 
 @SpringBootApplication
 @RequiredArgsConstructor
+@EnableScheduling
 public class MoneyManagerBotApplication implements CommandLineRunner {
 
     @Value("${admin.chatId}")

@@ -103,7 +103,6 @@ public class HandlerService {
                     switch (text) {
                         case "Доход", "Расход", "Перемещение" ->
                                 adminBotService.incomeMessageHandler(chatId, text, bot);
-//                        case "Назад\uD83D\uDD19" -> adminBotService.baseMenuForBackHandler(chatId, bot);
                         case "Меню" -> adminBotService.menuHandler(chatId, bot);
                         case "\uD83D\uDCB3Баланс" -> adminBotService.balanceViewHandler(chatId, bot);
                     }
