@@ -1580,7 +1580,7 @@ public class AdminBotService {
     @SneakyThrows
     public void additionalReportByTransactionType(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Вы можете посмотреть дополнительные отчеты по типу транзакции");
-        sendMessage.setReplyMarkup(markupService.transactionTypeReplyMarkup());
+        sendMessage.setReplyMarkup(markupService.transactionTypeForReportReplyMarkup());
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.ADDITIONAL_REPORT_BY_TRANSACTION_TYPE);
     }
@@ -1588,7 +1588,6 @@ public class AdminBotService {
     @SneakyThrows
     public void additionalReportListByTransactionType(Long chatId, String transactionType, TelegramWebhookBot bot) {
         List<Transaction> transactions = transactionService.findAllTransactionsByTransactionType(Objects.requireNonNull(getTransactionType(transactionType)).toString());
-
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             XSSFSheet sheet = workbook.createSheet("Отчет о транзакциях");
 
@@ -1647,6 +1646,12 @@ public class AdminBotService {
         } catch (IOException | TelegramApiException e) {
             e.printStackTrace();
         }
+    }
+
+    @SneakyThrows
+    private void warningMessageForEmptyList(Long chatId, TelegramWebhookBot bot) {
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Список транзакций пуст");
+        bot.execute(sendMessage);
     }
 
     @SneakyThrows

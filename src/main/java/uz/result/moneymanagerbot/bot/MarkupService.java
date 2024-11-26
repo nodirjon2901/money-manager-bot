@@ -88,6 +88,30 @@ public class MarkupService {
         return replyKeyboard;
     }
 
+    public ReplyKeyboard transactionTypeForReportReplyMarkup() {
+        ReplyKeyboardMarkup replyKeyboard = new ReplyKeyboardMarkup();
+        replyKeyboard.setResizeKeyboard(true);
+        List<KeyboardRow> rows = new ArrayList<>();
+
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton b1 = new KeyboardButton("Доход");
+        row.add(b1);
+
+        KeyboardButton b2 = new KeyboardButton("Расход");
+        row.add(b2);
+
+        KeyboardButton b3 = new KeyboardButton("Перемещение");
+        row.add(b3);
+        rows.add(row);
+
+        row = new KeyboardRow();
+        KeyboardButton back = new KeyboardButton("Назад\uD83D\uDD19");
+        row.add(back);
+        rows.add(row);
+        replyKeyboard.setKeyboard(rows);
+        return replyKeyboard;
+    }
+
     public InlineKeyboardMarkup moneyTypeListInlineMarkup(Long transactionId) {
         InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
