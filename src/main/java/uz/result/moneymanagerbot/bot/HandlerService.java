@@ -18,13 +18,178 @@ public class HandlerService {
 
     private final UserService userService;
 
+    private final UserBotService userBotService;
+
     private final AdminBotService adminBotService;
 
     public void handleUserRole(Long chatId, Message message, TelegramWebhookBot bot) {
-
+        UserState currentState = userService.findStateByChatId(chatId);
+        if (message.hasText()) {
+            String text = message.getText();
+            if (text.equals("/start")) {
+                if (!currentState.equals(UserState.DEFAULT)) {
+                    if (userService.checkUserForSignIn(chatId)) {
+                        userService.updateStateByChatId(chatId, UserState.ADD_TRANSACTION);
+                        userBotService.fromMenuToBaseMenuHandler(chatId, bot);
+                    } else {
+                        userService.updateStateByChatId(chatId, UserState.START);
+                    }
+                    Sessions.clearSessions();
+                    currentState = userService.findStateByChatId(chatId);
+                }
+            }
+            switch (currentState) {
+                case DEFAULT -> adminBotService.defaultStateHandler(chatId, text, message, bot);
+                case START -> adminBotService.startStateHandler(chatId, bot);
+                case PASSWORD -> userBotService.passwordStateHandler(chatId, text, message.getMessageId(), bot);
+                case ADDITIONAL_FILTER_INCOME_SERVICE_DATE ->
+                        adminBotService.incomeTransactionListFilterByPeriodShow(chatId, text, message.getMessageId(), bot);
+                case ADDITIONAL_FILTER_EXPENSE_DATE ->
+                        adminBotService.expenseTransactionListFilterByPeriodShow(chatId, text, message.getMessageId(), bot);
+                case ADDITIONAL_REPORT_DATE ->
+                        adminBotService.additionalReportDateStateHandler(chatId, text, message.getMessageId(), bot);
+                case CURRENT_PASSWORD ->
+                        adminBotService.requestCurrentPassword(chatId, text, message.getMessageId(), bot);
+                case NEW_PASSWORD -> adminBotService.requestNewPassword(chatId, text, message.getMessageId(), bot);
+                case NOTIFICATION_DATE ->
+                        adminBotService.notificationDateStateHandler(chatId, text, message.getMessageId(), bot);
+                case NOTIFICATION_MESSAGE -> adminBotService.notificationMessageStateHandle(chatId, text, bot);
+                case NOTIFICATION_SUMMA ->
+                        adminBotService.notificationSummaStateHandler(chatId, text, message.getMessageId(), bot);
+                case NOTIFICATION_EDIT_DATE ->
+                        adminBotService.notifEditStateHandler(chatId, text, message.getMessageId(), bot);
+                case EDIT_NOTIFICATION_TEXT -> adminBotService.notifEditTextStateHandler(chatId, text, bot);
+                case NOTIFICATION_EDIT_SUMMA ->
+                        adminBotService.notifEditSummaStateHandler(chatId, text, message.getMessageId(), bot);
+                case BASE_MENU -> {
+                    switch (text) {
+                        case "\uD83D\uDCD1Отчеты" -> adminBotService.reportControlHandler(chatId, bot);
+                        case "⚙️Настройки и доступы" -> adminBotService.settingsHandler(chatId, bot);
+                        case "✍️Уведомления" -> adminBotService.notificationHandler(chatId, bot);
+                        case "\uD83D\uDD12Log Out" -> adminBotService.logOutHandler(chatId, bot);
+                        case "Назад\uD83D\uDD19" -> userBotService.fromMenuToBaseMenuHandler(chatId, bot);
+                    }
+                }
+                case ADD_TRANSACTION -> {
+                    switch (text) {
+                        case "Меню" -> userBotService.menuHandler(chatId, bot);
+                        case "\uD83D\uDCB3Баланс" -> adminBotService.balanceViewHandler(chatId, bot);
+                    }
+                }
+                case REPORT_FORM -> {
+                    switch (text) {
+                        case "Доходы за месяц" -> adminBotService.incomeFilterForLastMonthHandler(chatId, bot);
+                        case "Расходы за месяц" -> adminBotService.expenseFilterForLastMonthHandler(chatId, bot);
+                        case "Сальдо" -> adminBotService.saldoViewHandler(chatId, bot);
+                        case "Дополнительные отчеты" -> adminBotService.additionalReport(chatId, bot);
+                        case "Назад\uD83D\uDD19" -> userBotService.baseMenuForBackHandler(chatId, bot);
+                    }
+                }
+                case ADDITIONAL_FILTER_INCOME -> {
+                    switch (text) {
+                        case "Назад\uD83D\uDD19" -> adminBotService.reportControlHandler(chatId, bot);
+                        case "Нет" -> adminBotService.incomeTransactionListForLastMonthHandler(chatId, bot);
+                        case "Клиента" -> adminBotService.incomeTransactionListFilterByClient(chatId, bot);
+                        case "Услугу" -> adminBotService.incomeTransactionListFilterByService(chatId, bot);
+                        case "Период" -> adminBotService.incomeTransactionListFilterByPeriod(chatId, bot);
+                    }
+                }
+                case ADDITIONAL_FILTER_EXPENSE -> {
+                    switch (text) {
+                        case "Назад\uD83D\uDD19" -> adminBotService.reportControlHandler(chatId, bot);
+                        case "Нет" -> adminBotService.expenseTransactionListForLastMonthHandler(chatId, bot);
+                        case "Период" -> adminBotService.expenseTransactionListFilterByPeriod(chatId, bot);
+                        case "Категорию расходов" ->
+                                adminBotService.expenseTransactionListFilterByServiceOfCategory(chatId, bot);
+                    }
+                }
+                case ADDITIONAL_REPORT -> {
+                    switch (text) {
+                        case "Назад\uD83D\uDD19" -> adminBotService.reportControlHandler(chatId, bot);
+                        case "Типу транзакции" -> adminBotService.additionalReportByTransactionType(chatId, bot);
+                        case "Типу денег" -> adminBotService.additionalReportByMoneyType(chatId, bot);
+                        case "Периоду" -> adminBotService.additionalReportByPeriod(chatId, bot);
+                    }
+                }
+                case ADDITIONAL_REPORT_BY_TRANSACTION_TYPE -> {
+                    switch (text) {
+                        case "Назад\uD83D\uDD19" -> adminBotService.additionalReport(chatId, bot);
+                        case "Доход", "Расход", "Перемещение" ->
+                                adminBotService.additionalReportListByTransactionType(chatId, text, bot);
+                    }
+                }
+                case SETTING -> {
+                    switch (text) {
+                        case "Просмотр текущих доступов" -> adminBotService.currentAccessRight(chatId, bot);
+                        case "Изменение пароля" -> adminBotService.editPasswordHandler(chatId, bot);
+                        case "Назад\uD83D\uDD19" -> userBotService.baseMenuForBackHandler(chatId, bot);
+                    }
+                }
+            }
+        }
     }
 
     public void handleUserCallbackQuery(Long chatId, String data, CallbackQuery callbackQuery, TelegramWebhookBot bot) {
+        UserState currentState = userService.findStateByChatId(chatId);
+        switch (currentState) {
+            case ADDITIONAL_FILTER_INCOME_CLIENT -> {
+                if (data.equals("back")) {
+                    adminBotService.incomeFilterForLastMonthHandler(chatId, bot);
+                } else {
+                    adminBotService.incomeTransactionListFilterByClientHandler(chatId, data, bot);
+                }
+            }
+            case ADDITIONAL_FILTER_INCOME_SERVICE -> {
+                if (data.equals("back")) {
+                    adminBotService.incomeFilterForLastMonthHandler(chatId, bot);
+                } else {
+                    adminBotService.incomeTransactionListFilterByServiceHandler(chatId, data, bot);
+                }
+            }
+            case ADDITIONAL_FILTER_INCOME_CATEGORY -> {
+                if (data.equals("back")) {
+                    adminBotService.expenseFilterForLastMonthHandler(chatId, bot);
+                } else {
+                    adminBotService.expenseTransactionListFilterByCategoryHandler(chatId, data, bot);
+                }
+            }
+            case ADDITIONAL_REPORT_BY_MONEY_TYPE -> {
+                if (data.equals("back")) {
+                    adminBotService.additionalReport(chatId, bot);
+                } else {
+                    adminBotService.showAdditionalReportByMoneyType(chatId, data, bot);
+                }
+            }
+            case NOTIFICATION_LIST -> {
+                switch (data) {
+                    case "back" -> userBotService.baseMenuForBackHandler(chatId, bot);
+                    case "other" -> adminBotService.addNotificationHandler(chatId, bot);
+                    default -> adminBotService.notificationControlHandler(chatId, data, bot);
+                }
+            }
+            case NOTIFICATION_TYPE -> adminBotService.notificationTypeStateHandler(chatId, data, bot);
+            case NOTIFICATION_REPEAT_TIME -> adminBotService.notificationRepeatTime(chatId, data, bot);
+            case NOTIFICATION_CONTROL -> {
+                switch (data) {
+                    case "back" -> adminBotService.notificationHandler(chatId, bot);
+                    case "delete" -> adminBotService.deleteNotificationHandler(chatId, bot);
+                    case "edit" -> adminBotService.notificationEditFormHandler(chatId, bot);
+                }
+            }
+            case EDIT_NOTIFICATION -> {
+                switch (data) {
+                    case "back" ->
+                            adminBotService.notificationControlHandler(chatId, Sessions.getNotification(chatId).getId().toString(), bot);
+                    case "time" -> adminBotService.editNotifTimeHandler(chatId, bot);
+                    case "text" -> adminBotService.editNotifTextHandler(chatId, bot);
+                    case "summa" -> adminBotService.editNotifSummaHandler(chatId, bot);
+                    case "tran_type" -> adminBotService.editNotifTranEditTypeHandler(chatId, bot);
+                    case "notif_type" -> adminBotService.editNotificationTypeHandler(chatId, bot);
+                }
+            }
+            case NOTIFICATION_TYPE_EDIT -> adminBotService.notificationTypeEditStateHandler(chatId, data, bot);
+            case NOTIFICATION_REPEAT_TIME_EDIT -> adminBotService.notificationTimeRepeatEditHandler(chatId, data, bot);
+        }
 
     }
 
@@ -71,6 +236,7 @@ public class HandlerService {
                 case NEW_USER_NAME -> adminBotService.newUserNameStateHandler(chatId, text, bot);
                 case NEW_USER_CHAT_ID ->
                         adminBotService.newUserChatIdStateHandler(chatId, text, message.getMessageId(), bot);
+                case USER_PASSWORD->adminBotService.userPasswordStateHandler(chatId,text,bot);
                 case USER_EDIT_NAME -> adminBotService.requestUserEditNameStateHandler(chatId, text, bot);
                 case USER_CHAT_ID_EDIT ->
                         adminBotService.userChatIdEditHandler(chatId, text, message.getMessageId(), bot);
@@ -79,20 +245,20 @@ public class HandlerService {
                 case NOTIFICATION_MESSAGE -> adminBotService.notificationMessageStateHandle(chatId, text, bot);
                 case NOTIFICATION_SUMMA ->
                         adminBotService.notificationSummaStateHandler(chatId, text, message.getMessageId(), bot);
-                case NOTIFICATION_EDIT_DATE->adminBotService.notifEditStateHandler(chatId,text,message.getMessageId(),bot);
-                case EDIT_NOTIFICATION_TEXT->adminBotService.notifEditTextStateHandler(chatId,text,bot);
-                case NOTIFICATION_EDIT_SUMMA->adminBotService.notifEditSummaStateHandler(chatId,text, message.getMessageId(), bot);
+                case NOTIFICATION_EDIT_DATE ->
+                        adminBotService.notifEditStateHandler(chatId, text, message.getMessageId(), bot);
+                case EDIT_NOTIFICATION_TEXT -> adminBotService.notifEditTextStateHandler(chatId, text, bot);
+                case NOTIFICATION_EDIT_SUMMA ->
+                        adminBotService.notifEditSummaStateHandler(chatId, text, message.getMessageId(), bot);
                 case BASE_MENU -> {
                     switch (text) {
                         case "\uD83D\uDC65Клиенты" -> adminBotService.clientControlHandler(chatId, bot);
-                        case "\uD83C\uDFB0Услуги" ->
-                                adminBotService.serviceControlHandler(chatId, bot);
-                        case "\uD83D\uDCC8Категория услуги" ->
-                                adminBotService.categoryControlHandler(chatId, bot);
+                        case "\uD83C\uDFB0Услуги" -> adminBotService.serviceControlHandler(chatId, bot);
+                        case "\uD83D\uDCC8Категория услуги" -> adminBotService.categoryControlHandler(chatId, bot);
                         case "\uD83D\uDCD1Отчеты" -> adminBotService.reportControlHandler(chatId, bot);
                         case "⚙️Настройки и доступы" -> adminBotService.settingsHandler(chatId, bot);
                         case "✍️Уведомления" -> adminBotService.notificationHandler(chatId, bot);
-                        case "\uD83D\uDD12Log Out"->adminBotService.logOutHandler(chatId,bot);
+                        case "\uD83D\uDD12Log Out" -> adminBotService.logOutHandler(chatId, bot);
                         case "Назад\uD83D\uDD19" -> adminBotService.fromMenuToBaseMenuHandler(chatId, bot);
                     }
                 }
@@ -399,15 +565,15 @@ public class HandlerService {
                 switch (data) {
                     case "back" ->
                             adminBotService.notificationControlHandler(chatId, Sessions.getNotification(chatId).getId().toString(), bot);
-                    case "time" -> adminBotService.editNotifTimeHandler(chatId,bot);
-                    case "text" -> adminBotService.editNotifTextHandler(chatId,bot);
-                    case "summa" -> adminBotService.editNotifSummaHandler(chatId,bot);
-                    case "tran_type" -> adminBotService.editNotifTranEditTypeHandler(chatId,bot);
-                    case "notif_type" -> adminBotService.editNotificationTypeHandler(chatId,bot);
+                    case "time" -> adminBotService.editNotifTimeHandler(chatId, bot);
+                    case "text" -> adminBotService.editNotifTextHandler(chatId, bot);
+                    case "summa" -> adminBotService.editNotifSummaHandler(chatId, bot);
+                    case "tran_type" -> adminBotService.editNotifTranEditTypeHandler(chatId, bot);
+                    case "notif_type" -> adminBotService.editNotificationTypeHandler(chatId, bot);
                 }
             }
-            case NOTIFICATION_TYPE_EDIT->adminBotService.notificationTypeEditStateHandler(chatId,data,bot);
-            case NOTIFICATION_REPEAT_TIME_EDIT->adminBotService.notificationTimeRepeatEditHandler(chatId,data,bot);
+            case NOTIFICATION_TYPE_EDIT -> adminBotService.notificationTypeEditStateHandler(chatId, data, bot);
+            case NOTIFICATION_REPEAT_TIME_EDIT -> adminBotService.notificationTimeRepeatEditHandler(chatId, data, bot);
         }
     }
 }

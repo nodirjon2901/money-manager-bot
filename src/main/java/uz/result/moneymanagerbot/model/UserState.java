@@ -146,4 +146,6 @@ public enum UserState {
 
     NOTIFICATION_REPEAT_TIME_EDIT,
 
+    USER_PASSWORD,
+
 }

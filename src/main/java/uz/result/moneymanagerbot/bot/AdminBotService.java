@@ -1771,6 +1771,16 @@ public class AdminBotService {
     public void userRoleStateHandler(Long chatId, String role, TelegramWebhookBot bot) {
         User user = Sessions.getUser(chatId);
         user.setRole(UserRole.valueOf(role));
+        Sessions.updateUser(chatId, user);
+        SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите пароль для пользователя");
+        bot.execute(sendMessage);
+        userService.updateStateByChatId(chatId, UserState.USER_PASSWORD);
+    }
+
+    @SneakyThrows
+    public void userPasswordStateHandler(Long chatId, String password, TelegramWebhookBot bot) {
+        User user = Sessions.getUser(chatId);
+        user.setPassword(password);
         userService.save(user);
         Sessions.removeUser(chatId);
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Пользователь успешно сохранён.✅");
@@ -1794,6 +1804,7 @@ public class AdminBotService {
         String text = "*User*\n\n" +
                 "*Name: *" + user.getName() + "\n" +
                 "*Role: *" + user.getRole() + "\n" +
+                "*Password: *" + user.getPassword() + "\n" +
                 "*ChatId: *" + user.getChatId() + "\n\n";
         SendMessage sendMessage = new SendMessage(chatId.toString(), text);
         sendMessage.setParseMode("Markdown");
@@ -2096,4 +2107,5 @@ public class AdminBotService {
         userService.logOut(chatId);
         startStateHandler(chatId, bot);
     }
+
 }
