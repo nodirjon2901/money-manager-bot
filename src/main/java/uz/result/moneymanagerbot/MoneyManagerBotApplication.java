@@ -77,6 +77,6 @@ public class MoneyManagerBotApplication implements CommandLineRunner {
         }
         expenseCategoryService.defaultCategorySave();
         serviceTypeService.defaultServiceTypeListSave();
-        clientService.defaultClientSave();
+//        clientService.defaultClientSave();
     }
 }
