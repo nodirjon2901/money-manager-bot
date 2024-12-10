@@ -24,6 +24,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -54,7 +55,11 @@ public class AdminBotService {
 
     private final NotificationService notificationService;
 
+    private final UtilService utilService;
+
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    private static final DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
 
     @Value("${bot.token}")
     private String token;
@@ -226,7 +231,8 @@ public class AdminBotService {
             warningMessageForPriceHandler(chatId, messageId, bot);
             return;
         }
-        transactionService.updateTransactionSummaById(Sessions.getTransactionId(chatId), Double.valueOf(transactionSumma));
+        Double exchangeRateSumma = utilService.getCurrentExchangeRateSumma();
+        transactionService.updateTransactionSummaById(Sessions.getTransactionId(chatId), Double.valueOf(transactionSumma), exchangeRateSumma);
         confirmMessageForTranSumma(chatId, messageId, bot);
         transactionDateMessageHandler(chatId, bot);
     }
@@ -370,7 +376,7 @@ public class AdminBotService {
             text = "*Транзакция*\n\n" +
                     "*Тип транзакции: *" + showTransactionType(transaction.getTransactionType()) + "\n" +
                     "*Валюта: *" + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
-                    "*Сумма транзакции: *" + transaction.getSumma() + "\n" +
+                    "*Сумма транзакции: *" + showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()) + "\n" +
                     "*Дата транзакции: *" + transaction.getTransactionDate() + "\n" +
                     "*Клиент дохода от транзакции: *" + transaction.getClient().getFullName() + "\n" +
                     "*Номер телефона клиента: *" + transaction.getClient().getPhoneNumber() + "\n" +
@@ -383,7 +389,7 @@ public class AdminBotService {
             text = "*Транзакция*\n\n" +
                     "*Тип транзакции: *" + showTransactionType(transaction.getTransactionType()) + "\n" +
                     "*Валюта: *" + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
-                    "*Сумма транзакции: *" + transaction.getSumma() + "\n" +
+                    "*Сумма транзакции: *" + showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()) + "\n" +
                     "*Дата транзакции: *" + transaction.getTransactionDate() + "\n" +
                     "*Категория расхода по транзакции: *" + transaction.getExpenseCategory().getName() + "\n" +
                     "*Комментарий к транзакции: *" + showTransactionCommit(transaction.getComment()) + "\n" +
@@ -393,7 +399,7 @@ public class AdminBotService {
             text = "*Транзакция*\n\n" +
                     "*Тип транзакции: *" + showTransactionType(transaction.getTransactionType()) + "\n" +
                     "*Валюта: *" + showTransactionMoneyType(transaction.getMoneyType()) + "\n" +
-                    "*Сумма транзакции: *" + transaction.getSumma() + "\n" +
+                    "*Сумма транзакции: *" + showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()) + "\n" +
                     "*Дата транзакции: *" + transaction.getTransactionDate() + "\n" +
                     "*Комментарий к транзакции: *" + showTransactionCommit(transaction.getComment()) + "\n" +
                     "*Файл транзакции: *" + showTransactionFile(transaction.getFile()) + "\n";
@@ -401,6 +407,17 @@ public class AdminBotService {
         SendMessage sendMessage = new SendMessage(chatId.toString(), text);
         sendMessage.setParseMode("Markdown");
         bot.execute(sendMessage);
+    }
+
+    private String showTransactionSumma(Double summa, MoneyType moneyType, Double oneUsd) {
+        if (moneyType.equals(MoneyType.CASH_CURRENCY)) {
+            if (oneUsd != null) {
+                return String.valueOf(summa) + "$  (1 USD=" + oneUsd + " сум)";
+            }
+            return String.valueOf(summa) + "$  (1 USD=" + 0.0 + " сум)";
+        } else {
+            return String.valueOf(summa) + " сум";
+        }
     }
 
     private String showTransactionCommit(String comment) {
@@ -921,12 +938,12 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getClient().getFullName());
                 row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
                 row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -939,7 +956,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -975,10 +992,10 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -991,7 +1008,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1017,15 +1034,15 @@ public class AdminBotService {
         for (Transaction transaction : transactionList) {
             if (transaction.getTransactionType() != null && transaction.getSumma() != null) {
                 if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
-                    income += transaction.getSumma();
+                    income += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
                 }
                 if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
-                    expense += transaction.getSumma();
+                    expense += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
                 }
             }
         }
 
-        String saldoMessage = "Сальдо: " + (income - expense);
+        String saldoMessage = "Сальдо:  " + (decimalFormat.format(income - expense))+" сум";
         SendMessage sendMessage = new SendMessage(chatId.toString(), saldoMessage);
         bot.execute(sendMessage);
     }
@@ -1085,12 +1102,12 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getClient().getFullName());
                 row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
                 row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1103,7 +1120,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1159,12 +1176,12 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getClient().getFullName());
                 row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
                 row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1177,7 +1194,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1235,12 +1252,12 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getClient().getFullName());
                 row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
                 row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1253,7 +1270,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1323,10 +1340,10 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1339,7 +1356,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1392,10 +1409,10 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1408,7 +1425,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1466,7 +1483,7 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
 
                 if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
@@ -1477,7 +1494,7 @@ public class AdminBotService {
                     row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
                 }
 
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1490,7 +1507,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1546,7 +1563,7 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
 
                 if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
@@ -1557,7 +1574,7 @@ public class AdminBotService {
                     row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
                 }
 
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1570,7 +1587,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1617,7 +1634,7 @@ public class AdminBotService {
                 Row row = sheet.createRow(rowIdx++);
                 row.createCell(0).setCellValue(showTransactionType(transaction.getTransactionType()));
                 row.createCell(1).setCellValue(showTransactionMoneyType(transaction.getMoneyType()));
-                row.createCell(2).setCellValue(transaction.getSumma());
+                row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
 
                 if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
@@ -1628,7 +1645,7 @@ public class AdminBotService {
                     row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
                 }
 
-                summa += transaction.getSumma();
+                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1641,7 +1658,7 @@ public class AdminBotService {
             totalLabelCell.setCellStyle(style);
 
             Cell totalSumCell = totalRow.createCell(2);
-            totalSumCell.setCellValue(summa);
+            totalSumCell.setCellValue(decimalFormat.format(summa)+" сум");
             totalSumCell.setCellStyle(style);
 
             workbook.write(outputStream);
@@ -1874,19 +1891,27 @@ public class AdminBotService {
         for (Transaction transaction : transactionList) {
             if (transaction.getTransactionType() != null && transaction.getSumma() != null) {
                 if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
-                    income += transaction.getSumma();
+                    income += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD());
                 }
                 if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
-                    expense += transaction.getSumma();
+                    expense += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD());
                 }
             }
         }
 
-        String text = "*Общая сумма дохода: * " + income + "\n\n" +
-                "*Общая сумма расходов: *" + expense + "\n\n";
+        String text = "*Общая сумма дохода: * " + decimalFormat.format(income) + " сум" + "\n\n" +
+                "*Общая сумма расходов: *" + decimalFormat.format(expense) + " сум" + "\n\n";
         SendMessage sendMessage = new SendMessage(chatId.toString(), text);
         sendMessage.setParseMode("Markdown");
         bot.execute(sendMessage);
+    }
+
+    private double countTransactionSumma(Double summa, Double oneUSD) {
+        if (summa == null || oneUSD == null) {
+            return 0;
+        } else {
+            return summa * oneUSD;
+        }
     }
 
     @SneakyThrows

@@ -36,8 +36,12 @@ public class TransactionService {
         transactionRepository.updateTransactionMoneyTypeById(moneyType, id);
     }
 
-    public void updateTransactionSummaById(Long id, Double summa) {
-        transactionRepository.updateTransactionSummaById(summa, id);
+    public void updateTransactionSummaById(Long id, Double summa, Double exchangeRateSumma) {
+        if (findById(id).getMoneyType().equals(MoneyType.CASH_CURRENCY)) {
+            transactionRepository.updateTransactionSummaWithUsdById(summa,exchangeRateSumma,id);
+        }else {
+            transactionRepository.updateTransactionSummaById(summa, id);
+        }
     }
 
     public void updateTransactionDateById(Long id, LocalDate date) {

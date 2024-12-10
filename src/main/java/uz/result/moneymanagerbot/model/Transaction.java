@@ -27,6 +27,8 @@ public class Transaction {
 
     Double summa;
 
+    Double oneUSD;
+
     LocalDate transactionDate;
 
     @ManyToOne

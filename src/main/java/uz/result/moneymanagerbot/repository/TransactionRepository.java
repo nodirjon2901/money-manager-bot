@@ -33,6 +33,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Modifying
     @Transactional
+    @Query(value = "update transactions set summa=:summa,oneusd=:usd  where id=:id", nativeQuery = true)
+    void updateTransactionSummaWithUsdById(@Param("summa") Double summa,@Param("usd") Double exchangeRateSumma,@Param("id") Long id);
+
+    @Modifying
+    @Transactional
     @Query(value = "update transactions set transaction_date=:date where id=:id", nativeQuery = true)
     void updateTransactionDateById(@Param("date") LocalDate date, @Param("id") Long id);
 
@@ -69,5 +74,4 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query(value = "select * from transactions where transaction_type=:type", nativeQuery = true)
     List<Transaction> findAllByTransactionType(@Param("type") String transactionType);
-
 }
