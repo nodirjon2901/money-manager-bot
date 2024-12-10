@@ -279,7 +279,7 @@ public class AdminBotService {
     @SneakyThrows
     private void expenseTypeHandler(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Выберите категорию расходов:");
-        sendMessage.setReplyMarkup(markupService.categoryListInlineMarkup(expenseCategoryService.findAll(), userService.findStateByChatId(chatId)));
+        sendMessage.setReplyMarkup(markupService.categoryListInlineMarkup(chatId, expenseCategoryService.findAll(), userService.findStateByChatId(chatId)));
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.EXPENSE_TYPE);
     }
@@ -287,7 +287,7 @@ public class AdminBotService {
     @SneakyThrows
     private void incomeTypeHandler(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Выберите клиента для дохода: ");
-        sendMessage.setReplyMarkup(markupService.clientListInlineMarkup(clientService.findAll()));
+        sendMessage.setReplyMarkup(markupService.clientListForAddTransactionInlineMarkup(clientService.findAll()));
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.INCOME_TYPE);
     }
@@ -529,8 +529,7 @@ public class AdminBotService {
     @SneakyThrows
     public void addClientHandler(Long chatId, UserState currentState, TelegramWebhookBot bot) {
         if (currentState.equals(UserState.INCOME_TYPE)) {
-            transactionService.deleteById(Sessions.getTransactionId(chatId));
-            Sessions.removeTransactionId(chatId);
+            Sessions.addAdminState(chatId, currentState);
         }
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите имя и фамилию клиента (Ф.И.О):");
         bot.execute(sendMessage);
@@ -566,6 +565,11 @@ public class AdminBotService {
         ServiceType service = serviceTypeService.findById(Integer.valueOf(serviceId));
         clientService.updateClientServiceCategory(Sessions.getClientId(chatId), service);
         Sessions.removeClientId(chatId);
+        if (Sessions.getAdminState(chatId).equals(UserState.INCOME_TYPE)) {
+            incomeTypeHandler(chatId, bot);
+            Sessions.removeAdminState(chatId);
+            return;
+        }
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Список клиентов");
         sendMessage.setReplyMarkup(markupService.clientListInlineMarkup(clientService.findAll()));
         confirmMessageForClientAddHandler(chatId, bot);
@@ -679,10 +683,6 @@ public class AdminBotService {
 
     @SneakyThrows
     public void addServiceHandler(Long chatId, UserState currentState, TelegramWebhookBot bot) {
-        if (currentState.equals(UserState.REQUEST_CLIENT_SERVICE_CATEGORY)) {
-            clientService.deleteById(Sessions.getClientId(chatId));
-            Sessions.removeClientId(chatId);
-        }
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите название новой услуги:");
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.REQUEST_SERVICE_NAME);
@@ -708,6 +708,12 @@ public class AdminBotService {
             ServiceType type = ServiceType.builder().name(serviceName).build();
             Integer id = serviceTypeService.save(type).getId();
             Sessions.addServiceId(chatId, id);
+            UserState adminState = Sessions.getAdminState(chatId);
+            if (adminState != null && adminState.equals(UserState.INCOME_TYPE)) {
+                requestClientPhoneNumberStateHandler(chatId, clientService.findById(Sessions.getClientId(chatId)).getPhoneNumber(), bot);
+                Sessions.removeServiceId(chatId);
+                return;
+            }
             SendMessage sendMessage = new SendMessage(chatId.toString(), "Услуга успешно сохранена.");
             bot.execute(sendMessage);
             serviceListHandler(chatId, bot);
@@ -768,7 +774,7 @@ public class AdminBotService {
     public void categoryControlHandler(Long chatId, TelegramWebhookBot bot) {
         trickMessageForCategoryListHandler(chatId, bot);
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Список категорий");
-        sendMessage.setReplyMarkup(markupService.categoryListInlineMarkup(expenseCategoryService.findAll(), userService.findStateByChatId(chatId)));
+        sendMessage.setReplyMarkup(markupService.categoryListInlineMarkup(chatId, expenseCategoryService.findAll(), userService.findStateByChatId(chatId)));
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.CATEGORY_LIST);
     }
@@ -782,10 +788,7 @@ public class AdminBotService {
 
     @SneakyThrows
     public void addCategoryHandler(Long chatId, UserState currentState, TelegramWebhookBot bot) {
-        if (currentState.equals(UserState.EXPENSE_TYPE)) {
-            transactionService.deleteById(Sessions.getTransactionId(chatId));
-            Sessions.removeTransactionId(chatId);
-        }
+        Sessions.addAdminState(chatId, currentState);
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Введите название новой категории:");
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.REQUEST_CATEGORY_NAME);
@@ -800,6 +803,13 @@ public class AdminBotService {
             ExpenseCategory category = ExpenseCategory.builder().name(categoryName).build();
             Integer id = expenseCategoryService.save(category).getId();
             Sessions.addCategoryId(chatId, id);
+            UserState adminState = Sessions.getAdminState(chatId);
+            if (adminState != null && adminState.equals(UserState.EXPENSE_TYPE)) {
+                expenseTypeHandler(chatId, bot);
+                Sessions.removeAdminState(chatId);
+                Sessions.removeCategoryId(chatId);
+                return;
+            }
             SendMessage sendMessage = new SendMessage(chatId.toString(), "Категория успешно сохранена.");
             bot.execute(sendMessage);
             categoryListHandler(chatId, bot);
@@ -809,7 +819,7 @@ public class AdminBotService {
     @SneakyThrows
     public void categoryListHandler(Long chatId, TelegramWebhookBot bot) {
         SendMessage sendMessage = new SendMessage(chatId.toString(), "Список категорий");
-        sendMessage.setReplyMarkup(markupService.categoryListInlineMarkup(expenseCategoryService.findAll(), userService.findStateByChatId(chatId)));
+        sendMessage.setReplyMarkup(markupService.categoryListInlineMarkup(chatId, expenseCategoryService.findAll(), userService.findStateByChatId(chatId)));
         bot.execute(sendMessage);
         userService.updateStateByChatId(chatId, UserState.CATEGORY_LIST);
         Sessions.removeCategoryId(chatId);
@@ -1646,12 +1656,6 @@ public class AdminBotService {
         } catch (IOException | TelegramApiException e) {
             e.printStackTrace();
         }
-    }
-
-    @SneakyThrows
-    private void warningMessageForEmptyList(Long chatId, TelegramWebhookBot bot) {
-        SendMessage sendMessage = new SendMessage(chatId.toString(), "Список транзакций пуст");
-        bot.execute(sendMessage);
     }
 
     @SneakyThrows

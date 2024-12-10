@@ -2,6 +2,7 @@ package uz.result.moneymanagerbot.bot;
 
 import uz.result.moneymanagerbot.model.Notification;
 import uz.result.moneymanagerbot.model.User;
+import uz.result.moneymanagerbot.model.UserState;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,6 +19,20 @@ public class Sessions {
     private static final ConcurrentHashMap<Long, User> users = new ConcurrentHashMap<>();
 
     private static final ConcurrentHashMap<Long, Notification> notifications = new ConcurrentHashMap<>();
+
+    private static final ConcurrentHashMap<Long, UserState> adminStates = new ConcurrentHashMap<>();
+
+    public static void addAdminState(Long chatId, UserState state) {
+        adminStates.put(chatId, state);
+    }
+
+    public static UserState getAdminState(Long chatId) {
+        return adminStates.get(chatId);
+    }
+
+    public static void removeAdminState(Long chatId) {
+        adminStates.remove(chatId);
+    }
 
     public static void addTransactionId(Long chatId, Long transactionId) {
         transactionIds.put(chatId, transactionId);
