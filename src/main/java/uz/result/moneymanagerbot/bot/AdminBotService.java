@@ -943,7 +943,7 @@ public class AdminBotService {
                 row.createCell(4).setCellValue(transaction.getClient().getFullName());
                 row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
                 row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -995,7 +995,7 @@ public class AdminBotService {
                 row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1034,10 +1034,10 @@ public class AdminBotService {
         for (Transaction transaction : transactionList) {
             if (transaction.getTransactionType() != null && transaction.getSumma() != null) {
                 if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
-                    income += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                    income += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
                 }
                 if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
-                    expense += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                    expense += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
                 }
             }
         }
@@ -1107,7 +1107,7 @@ public class AdminBotService {
                 row.createCell(4).setCellValue(transaction.getClient().getFullName());
                 row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
                 row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1181,7 +1181,7 @@ public class AdminBotService {
                 row.createCell(4).setCellValue(transaction.getClient().getFullName());
                 row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
                 row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1257,7 +1257,7 @@ public class AdminBotService {
                 row.createCell(4).setCellValue(transaction.getClient().getFullName());
                 row.createCell(5).setCellValue(transaction.getClient().getPhoneNumber());
                 row.createCell(6).setCellValue(transaction.getClient().getServiceType().getName());
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1343,7 +1343,7 @@ public class AdminBotService {
                 row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1412,7 +1412,7 @@ public class AdminBotService {
                 row.createCell(2).setCellValue(showTransactionSumma(transaction.getSumma(), transaction.getMoneyType(), transaction.getOneUSD()));
                 row.createCell(3).setCellValue(transaction.getTransactionDate().toString());
                 row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1494,7 +1494,7 @@ public class AdminBotService {
                     row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
                 }
 
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1574,7 +1574,7 @@ public class AdminBotService {
                     row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
                 }
 
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1645,7 +1645,7 @@ public class AdminBotService {
                     row.createCell(4).setCellValue(transaction.getExpenseCategory().getName());
                 }
 
-                summa += countTransactionSumma(transaction.getSumma(),transaction.getOneUSD());
+                summa += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
             }
 
             Row totalRow = sheet.createRow(rowIdx + 1);
@@ -1891,10 +1891,10 @@ public class AdminBotService {
         for (Transaction transaction : transactionList) {
             if (transaction.getTransactionType() != null && transaction.getSumma() != null) {
                 if (transaction.getTransactionType().equals(TransactionType.INCOME)) {
-                    income += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD());
+                    income += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
                 }
                 if (transaction.getTransactionType().equals(TransactionType.EXPENSE)) {
-                    expense += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD());
+                    expense += countTransactionSumma(transaction.getSumma(), transaction.getOneUSD(),transaction.getMoneyType());
                 }
             }
         }
@@ -1906,11 +1906,15 @@ public class AdminBotService {
         bot.execute(sendMessage);
     }
 
-    private double countTransactionSumma(Double summa, Double oneUSD) {
-        if (summa == null || oneUSD == null) {
-            return 0;
-        } else {
-            return summa * oneUSD;
+    private double countTransactionSumma(Double summa, Double oneUSD,MoneyType moneyType) {
+        if (moneyType.equals(MoneyType.CASH_CURRENCY)){
+            if (summa == null || oneUSD == null) {
+                return 0;
+            } else {
+                return summa * oneUSD;
+            }
+        }else {
+         return summa;
         }
     }
 
